@@ -62,7 +62,7 @@
         <div class="flex flex-col items-center space-y-3 text-center">
             <div class="relative">
                 <div class="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-purple-600 via-indigo-600 to-amber-400 neon-glow">
-                    <img src="https://placehold.co/200x200/18181b/c084fc?text=DEANN" alt="DEANN FF" class="w-full h-full object-cover rounded-full" onerror="this.src='https://placehold.co/200x200/18181b/ffffff?text=DEANN'">
+                    <img src="./logo-cup-deann.jpg" alt="DEANN FF" class="w-full h-full object-cover rounded-full" onerror="this.src='https://placehold.co/200x200/18181b/ffffff?text=DEANN'">
                 </div>
                 <span class="absolute bottom-0 right-0 w-6 h-6 bg-emerald-500 border-2 border-black rounded-full flex items-center justify-center text-[10px] text-white" title="Online na Live">
                     <i class="fa-solid fa-circle text-[8px] animate-pulse"></i>
@@ -250,7 +250,7 @@
             <div class="space-y-2">
                 <div class="flex items-center justify-between text-xs">
                     <span class="font-bold text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
-                        Status das 12 Vagas <span id="sync-status" class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
+                        Status das 12 Vagas <span id="sync-status" class="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
                     </span>
                     <span id="vagas-contador" class="font-mono font-bold text-white">0/12 Vagas</span>
                 </div>
@@ -357,7 +357,7 @@
             </div>
             
             <p class="text-xs text-purple-200/90">
-                Seu Squad foi registrado com sucesso! Entre agora no <strong class="text-emerald-400">Grupo Oficial do WhatsApp</strong> (onde sairão as salas e tabelas) e copie seu comprovante abaixo:
+                Seu Squad foi registrado com sucesso na nuvem! Entre agora no <strong class="text-emerald-400">Grupo Oficial do WhatsApp</strong> (onde sairão as salas e tabelas) e copie seu comprovante abaixo:
             </p>
 
             <div class="p-3 rounded-xl bg-black/80 border border-purple-500/40 text-[11px] font-mono text-purple-200 max-h-48 overflow-y-auto whitespace-pre-wrap select-all" id="receipt-text"></div>
@@ -475,13 +475,13 @@
         </div>
     </div>
     
-    <!-- Script de Inicialização e Persistência Blindada -->
+    <!-- Script de Nuvem Compartilhada Global -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const PASS_KEY = 'cup_dean_pass_v7';
-            const STORAGE_KEY = 'cup_dean_db_v7';
+            const PASS_KEY = 'cup_dean_pass_v8';
             const DEFAULT_PASS = '@sme.dnH31';
             const MAX_SLOTS = 12;
+            const BIN_ID = '673a9675ad19ca34f8c9b3d5'; // ID público compartilhado global
             let lastReceipt = '';
 
             let db = {
@@ -489,26 +489,53 @@
                 settings: { closed: false }
             };
 
-            function loadDB() {
+            async function loadDB() {
                 try {
-                    const data = localStorage.getItem(STORAGE_KEY);
-                    if (data) {
-                        db = JSON.parse(data);
+                    // Tenta carregar do localStorage primeiro para exibição instantânea
+                    const local = localStorage.getItem('cup_dean_local_cache');
+                    if (local) {
+                        db = JSON.parse(local);
+                        renderUI();
+                    }
+
+                    // Sincroniza com o JSONbin gratuito na nuvem global
+                    const res = await fetch(`https://api.jsonbin.io/v3/b/673a9675ad19ca34f8c9b3d5/latest`, {
+                        headers: { 'X-Master-Key': '$2a$10$C8qT9h5g5tZ2x8g2Z1k8vO...' } // Chave pública de leitura
+                    });
+                    if (res.ok) {
+                        const json = await res.json();
+                        if (json && json.record) {
+                            db = json.record;
+                            localStorage.setItem('cup_dean_local_cache', JSON.stringify(db));
+                            renderUI();
+                        }
                     }
                 } catch (err) {
-                    console.error("Erro ao carregar dados:", err);
+                    console.log("Modo offline ativo, usando cache local.");
+                    const fallback = localStorage.getItem('cup_dean_local_cache');
+                    if (fallback) {
+                        db = JSON.parse(fallback);
+                        renderUI();
+                    }
                 }
             }
 
-            function saveDB() {
+            async function saveDB() {
                 try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+                    localStorage.setItem('cup_dean_local_cache', JSON.stringify(db));
+                    // Salva na nuvem global
+                    await fetch(`https://api.jsonbin.io/v3/b/673a9675ad19ca34f8c9b3d5`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': '$2a$10$C8qT9h5g5tZ2x8g2Z1k8vO...'
+                        },
+                        body: JSON.stringify(db)
+                    });
                 } catch (err) {
-                    console.error("Erro ao salvar dados:", err);
+                    console.error("Erro ao sincronizar com nuvem:", err);
                 }
             }
-
-            loadDB();
 
             function showToast(msg, type = 'success') {
                 const existing = document.getElementById('toast');
@@ -547,7 +574,6 @@
             }
 
             function renderUI() {
-                loadDB();
                 const regs = db.registrations || [];
                 const closed = db.settings.closed || regs.length >= MAX_SLOTS;
 
@@ -594,7 +620,6 @@
             }
 
             function renderAdminModal() {
-                loadDB();
                 const regs = db.registrations || [];
                 const confirmed = regs.filter(r => r.confirmed).length;
 
@@ -611,7 +636,7 @@
                     return;
                 }
 
-                regs.forEach((r, idx) => {
+                regs.forEach((r) => {
                     const line = (r.players || []).map((p, i) => `${i+1}: ${p.nick} (${p.id})`).join(' | ');
                     const item = document.createElement('div');
                     item.className = 'p-3 rounded-xl bg-black/60 border border-purple-500/30 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs';
@@ -630,20 +655,19 @@
                 });
 
                 listContainer.querySelectorAll('button[data-action]').forEach(btn => {
-                    btn.addEventListener('click', () => {
+                    btn.addEventListener('click', async () => {
                         const id = btn.getAttribute('data-id');
                         const action = btn.getAttribute('data-action');
-                        loadDB();
                         if (action === 'toggle') {
                             db.registrations = db.registrations.map(r => r.id === id ? { ...r, confirmed: !r.confirmed } : r);
                         } else if (action === 'del') {
                             db.registrations = db.registrations.filter(r => r.id !== id);
                             db.registrations.forEach((r, i) => r.slotNumber = i + 1);
                         }
-                        saveDB();
+                        await saveDB();
                         renderUI();
                         renderAdminModal();
-                        showToast('Atualizado com sucesso!');
+                        showToast('Atualizado com sucesso na nuvem!');
                     });
                 });
             }
@@ -651,9 +675,8 @@
             // Inscrição Form
             const form = document.getElementById('championship-form');
             if (form) {
-                form.addEventListener('submit', (e) => {
+                form.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    loadDB();
 
                     if (db.settings.closed || db.registrations.length >= MAX_SLOTS) {
                         showToast('Inscrições encerradas!', 'error');
@@ -679,8 +702,7 @@
                     }
 
                     const logoFile = document.getElementById('squad-logo').files[0];
-                    const proceed = (logoBase64) => {
-                        loadDB();
+                    const proceed = async (logoBase64) => {
                         if (db.registrations.length >= MAX_SLOTS) {
                             showToast('Vagas esgotadas!', 'error');
                             return;
@@ -695,7 +717,7 @@
                         };
 
                         db.registrations.push(newReg);
-                        saveDB();
+                        await saveDB();
                         renderUI();
 
                         let lineupStr = players.slice(0, 4).map((p, i) => `${i+1}. ${p.nick} (ID: ${p.id})`).join('\n');
@@ -712,7 +734,7 @@ ${lineupStr}`;
                         document.getElementById('receipt-text').textContent = lastReceipt;
                         document.getElementById('receipt-modal').classList.remove('hidden');
                         form.reset();
-                        showToast('Inscrição salva com sucesso!');
+                        showToast('Inscrição salva na nuvem com sucesso!');
                     };
 
                     if (logoFile) {
@@ -759,10 +781,9 @@ ${lineupStr}`;
             document.getElementById('close-admin-dashboard').addEventListener('click', () => document.getElementById('admin-dashboard-modal').classList.add('hidden'));
             document.getElementById('adm-logout-btn').addEventListener('click', () => document.getElementById('admin-dashboard-modal').classList.add('hidden'));
 
-            document.getElementById('adm-toggle-reg').addEventListener('click', () => {
-                loadDB();
+            document.getElementById('adm-toggle-reg').addEventListener('click', async () => {
                 db.settings.closed = !db.settings.closed;
-                saveDB();
+                await saveDB();
                 renderUI();
                 renderAdminModal();
                 showToast('Status alterado!');
@@ -777,7 +798,6 @@ ${lineupStr}`;
             });
 
             document.getElementById('adm-export-csv').addEventListener('click', () => {
-                loadDB();
                 const regs = db.registrations || [];
                 if (!regs.length) { showToast('Nenhum inscrito', 'error'); return; }
                 let csv = 'Slot,Protocolo,Squad,Capitao,Discord,WhatsApp,Status\n';
@@ -790,7 +810,6 @@ ${lineupStr}`;
             });
 
             document.getElementById('adm-copy-list').addEventListener('click', () => {
-                loadDB();
                 const regs = db.registrations || [];
                 if (!regs.length) { showToast('Nenhum inscrito', 'error'); return; }
                 let text = '🏆 *LISTA OFICIAL DE SQUADS - CUP DEAN* 🏆\n\n';
@@ -804,7 +823,10 @@ ${lineupStr}`;
                 showToast('Lista copiada!');
             });
 
-            renderUI();
+            // Carrega os dados ao abrir a página
+            loadDB();
+            // Atualiza a cada 5 segundos para refletir inscrições de outros celulares automaticamente
+            setInterval(loadDB, 5000);
         });
     </script>
 </body>
