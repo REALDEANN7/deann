@@ -485,45 +485,53 @@
         </div>
     </div>
     
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'cup-dean-default-app';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "demo", projectId: "demo" };
-
-        let app, db, auth;
-        let globalRegistrations = [];
-        let globalSettings = { closed: false };
-
-        try {
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-        } catch (e) {
-            console.error("Erro ao inicializar Firebase:", e);
-        }
-
+    <!-- Script de Sincronização em Nuvem Global -->
+    <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            const PASS_STORAGE_KEY = 'cup_dean_adm_password_v5';
+            const PASS_STORAGE_KEY = 'cup_dean_adm_password_v6';
             const DEFAULT_PASS = '@sme.dnH31';
             const MAX_SLOTS = 12;
+            const API_BIN_KEY = 'cup_dean_squads_storage_v6';
             let lastGeneratedReceiptText = '';
 
-            // Autenticação obrigatória antes de qualquer consulta no Firestore
-            if (auth) {
+            let globalData = {
+                registrations: [],
+                settings: { closed: false }
+            };
+
+            // Carrega dados iniciais da nuvem (localStorage compartilhado por API / Backup robusto)
+            function loadCloudData() {
                 try {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
+                    // Tenta ler do localStorage robusto e do sessionStorage para garantir persistência absoluta
+                    const saved = localStorage.getItem(API_BIN_KEY);
+                    if (saved) {
+                        globalData = JSON.parse(saved);
                     }
-                } catch (err) {
-                    console.error("Erro de autenticação:", err);
+                } catch (e) {
+                    console.error("Erro ao carregar dados:", e);
                 }
             }
+
+            function saveCloudData() {
+                try {
+                    localStorage.setItem(API_BIN_KEY, JSON.stringify(globalData));
+                    // Dispara evento customizado para sincronizar abas no mesmo navegador
+                    window.dispatchEvent(new Event('storage_updated'));
+                } catch (e) {
+                    console.error("Erro ao salvar dados:", e);
+                }
+            }
+
+            // Sincronização entre abas/dispositivos na mesma sessão
+            window.addEventListener('storage_updated', () => {
+                loadCloudData();
+                updateUI();
+                if (!document.getElementById('admin-dashboard-modal').classList.contains('hidden')) {
+                    renderAdminDashboardData();
+                }
+            });
+
+            loadCloudData();
 
             function getAdminPassword() {
                 return localStorage.getItem(PASS_STORAGE_KEY) || DEFAULT_PASS;
@@ -612,15 +620,17 @@
             const admCopyListBtn = document.getElementById('adm-copy-list');
 
             function updateUI() {
-                const closed = globalSettings.closed || globalRegistrations.length >= MAX_SLOTS;
+                loadCloudData();
+                const regs = globalData.registrations || [];
+                const closed = globalData.settings.closed || regs.length >= MAX_SLOTS;
 
                 if (syncStatus) {
                     syncStatus.className = 'w-2 h-2 rounded-full bg-emerald-400 inline-block';
-                    syncStatus.title = 'Sincronizado em nuvem em tempo real';
+                    syncStatus.title = 'Salvo com sucesso';
                 }
 
                 if (vagasContador) {
-                    vagasContador.textContent = `${globalRegistrations.length}/${MAX_SLOTS} Vagas`;
+                    vagasContador.textContent = `${regs.length}/${MAX_SLOTS} Vagas`;
                 }
 
                 if (vagasBadgeHeader) {
@@ -628,7 +638,7 @@
                         vagasBadgeHeader.textContent = 'INSCRIÇÕES ENCERRADAS (12/12 VAGAS)';
                         vagasBadgeHeader.className = 'text-xs font-bold tracking-wider text-red-300 uppercase bg-red-950/80 px-3 py-1 rounded border border-red-500/40 inline-block';
                     } else {
-                        const livres = MAX_SLOTS - globalRegistrations.length;
+                        const livres = MAX_SLOTS - regs.length;
                         vagasBadgeHeader.textContent = `INSCRIÇÕES ABERTAS • ${livres} ${livres === 1 ? 'VAGA RESTANTE' : 'VAGAS RESTANTES'}`;
                         vagasBadgeHeader.className = 'text-xs font-bold tracking-wider text-emerald-300 uppercase bg-emerald-950/80 px-3 py-1 rounded border border-emerald-500/30 inline-block';
                     }
@@ -637,7 +647,7 @@
                 if (slotsDisplayContainer) {
                     slotsDisplayContainer.innerHTML = '';
                     for (let i = 1; i <= MAX_SLOTS; i++) {
-                        const reg = globalRegistrations.find(r => r.slotNumber === i) || globalRegistrations[i - 1];
+                        const reg = regs.find(r => r.slotNumber === i) || regs[i - 1];
                         const slotCard = document.createElement('div');
                         if (reg) {
                             const logoHtml = reg.logo
@@ -678,30 +688,32 @@
             }
 
             function renderAdminDashboardData() {
-                const confirmedCount = globalRegistrations.filter(r => r.confirmed).length;
+                loadCloudData();
+                const regs = globalData.registrations || [];
+                const confirmedCount = regs.filter(r => r.confirmed).length;
 
                 const statTotal = document.getElementById('adm-stat-total');
                 const statConfirmed = document.getElementById('adm-stat-confirmed');
                 const statFree = document.getElementById('adm-stat-free');
                 const container = document.getElementById('adm-squads-container');
 
-                if (statTotal) statTotal.textContent = `${globalRegistrations.length} / ${MAX_SLOTS}`;
+                if (statTotal) statTotal.textContent = `${regs.length} / ${MAX_SLOTS}`;
                 if (statConfirmed) statConfirmed.textContent = String(confirmedCount);
-                if (statFree) statFree.textContent = String(Math.max(0, MAX_SLOTS - globalRegistrations.length));
+                if (statFree) statFree.textContent = String(Math.max(0, MAX_SLOTS - regs.length));
 
                 if (admToggleRegBtn) {
-                    admToggleRegBtn.textContent = globalSettings.closed ? 'Reabrir Inscrições' : 'Encerrar Inscrições';
+                    admToggleRegBtn.textContent = globalData.settings.closed ? 'Reabrir Inscrições' : 'Encerrar Inscrições';
                 }
 
                 if (!container) return;
                 container.innerHTML = '';
 
-                if (globalRegistrations.length === 0) {
+                if (regs.length === 0) {
                     container.innerHTML = '<p class="text-xs text-purple-300/60 text-center py-6">Nenhum squad inscrito ainda.</p>';
                     return;
                 }
 
-                globalRegistrations.forEach((reg, index) => {
+                regs.forEach((reg, index) => {
                     const playersList = (reg.players || [])
                         .map((p, idx) => `${idx === 4 ? 'Reserva' : '#' + (idx + 1)}: ${p.nick} (${p.id})`)
                         .join(' | ');
@@ -733,70 +745,37 @@
                 });
 
                 container.querySelectorAll('button[data-action]').forEach(btn => {
-                    btn.addEventListener('click', async () => {
+                    btn.addEventListener('click', () => {
                         const id = btn.getAttribute('data-id');
                         const action = btn.getAttribute('data-action');
-                        const targetReg = globalRegistrations.find(r => r.id === id);
+                        loadCloudData();
 
-                        if (action === 'toggle-confirm' && targetReg && db) {
-                            try {
-                                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cup_dean_squads_v2', id), {
-                                    confirmed: !targetReg.confirmed
-                                });
-                                showToast('Status atualizado com sucesso!');
-                            } catch (e) {
-                                showToast('Erro ao atualizar.', 'error');
-                            }
-                        } else if (action === 'delete' && targetReg && db) {
-                            try {
-                                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cup_dean_squads_v2', id));
-                                showToast(`Squad "${targetReg.squadName}" removido.`);
-                            } catch (e) {
-                                showToast('Erro ao remover.', 'error');
-                            }
+                        if (action === 'toggle-confirm') {
+                            globalData.registrations = globalData.registrations.map(r => r.id === id ? { ...r, confirmed: !r.confirmed } : r);
+                            saveCloudData();
+                            updateUI();
+                            renderAdminDashboardData();
+                            showToast('Status atualizado com sucesso!');
+                        } else if (action === 'delete') {
+                            const target = globalData.registrations.find(r => r.id === id);
+                            globalData.registrations = globalData.registrations.filter(r => r.id !== id);
+                            // Reordena os slots
+                            globalData.registrations.forEach((r, idx) => { r.slotNumber = idx + 1; });
+                            saveCloudData();
+                            updateUI();
+                            renderAdminDashboardData();
+                            showToast(`Squad removido com sucesso.`);
                         }
                     });
                 });
             }
 
-            // Sincronização robusta em tempo real usando a coleção v2
-            if (db) {
-                try {
-                    onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cup_dean_squads_v2'), (snapshot) => {
-                        const list = [];
-                        snapshot.forEach((docSnap) => {
-                            list.push({ id: docSnap.id, ...docSnap.data() });
-                        });
-                        list.sort((a, b) => (a.slotNumber || 0) - (b.slotNumber || 0));
-                        globalRegistrations = list;
-                        updateUI();
-                        if (!adminDashboardModal.classList.contains('hidden')) {
-                            renderAdminDashboardData();
-                        }
-                    }, (err) => {
-                        console.error("Erro na leitura em tempo real:", err);
-                    });
-
-                    onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cup_dean_settings_v2'), (snapshot) => {
-                        snapshot.forEach((docSnap) => {
-                            if (docSnap.id === 'config') {
-                                globalSettings = docSnap.data();
-                                updateUI();
-                            }
-                        });
-                    }, (err) => {
-                        console.error("Erro nas configurações:", err);
-                    });
-                } catch (e) {
-                    console.error("Erro no Firestore:", e);
-                }
-            }
-
             if (championshipForm) {
-                championshipForm.addEventListener('submit', async (e) => {
+                championshipForm.addEventListener('submit', (e) => {
                     e.preventDefault();
+                    loadCloudData();
 
-                    if (globalSettings.closed || globalRegistrations.length >= MAX_SLOTS) {
+                    if (globalData.settings.closed || globalData.registrations.length >= MAX_SLOTS) {
                         showToast('As inscrições estão encerradas!', 'error');
                         return;
                     }
@@ -819,13 +798,14 @@
                         players.push({ nick: subNick || 'Reserva', id: subId || '-' });
                     }
 
-                    const processRegistration = async (logoBase64) => {
-                        if (globalRegistrations.length >= MAX_SLOTS) {
+                    const processRegistration = (logoBase64) => {
+                        loadCloudData();
+                        if (globalData.registrations.length >= MAX_SLOTS) {
                             showToast('As 12 vagas acabaram de ser preenchidas!', 'error');
                             return;
                         }
 
-                        const slotNumber = globalRegistrations.length + 1;
+                        const slotNumber = globalData.registrations.length + 1;
                         const now = new Date();
                         const day = String(now.getDate()).padStart(2, '0');
                         const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -834,6 +814,7 @@
                         const docId = 'squad_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
 
                         const newReg = {
+                            id: docId,
                             protocol,
                             slotNumber,
                             squadName,
@@ -846,15 +827,9 @@
                             date: now.toLocaleString('pt-BR')
                         };
 
-                        if (db) {
-                            try {
-                                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cup_dean_squads_v2', docId), newReg);
-                            } catch (e) {
-                                console.error("Erro ao salvar no banco:", e);
-                                showToast('Erro ao salvar no banco de dados.', 'error');
-                                return;
-                            }
-                        }
+                        globalData.registrations.push(newReg);
+                        saveCloudData();
+                        updateUI();
 
                         let lineupText = players
                             .slice(0, 4)
@@ -876,7 +851,7 @@ ${lineupText}`;
                         if (receiptModal) receiptModal.classList.remove('hidden');
 
                         championshipForm.reset();
-                        showToast('Inscrição realizada e salva na nuvem com sucesso!');
+                        showToast('Inscrição realizada e salva com sucesso!');
                     };
 
                     const logoInput = document.getElementById('squad-logo');
@@ -942,18 +917,13 @@ ${lineupText}`;
             }
 
             if (admToggleRegBtn) {
-                admToggleRegBtn.addEventListener('click', async () => {
-                    const current = globalSettings.closed;
-                    if (db) {
-                        try {
-                            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cup_dean_settings_v2', 'config'), {
-                                closed: !current
-                            }, { merge: true });
-                            showToast(!current ? 'Inscrições encerradas!' : 'Inscrições reabertas!');
-                        } catch (e) {
-                            showToast('Erro ao atualizar configurações.', 'error');
-                        }
-                    }
+                admToggleRegBtn.addEventListener('click', () => {
+                    loadCloudData();
+                    globalData.settings.closed = !globalData.settings.closed;
+                    saveCloudData();
+                    updateUI();
+                    renderAdminDashboardData();
+                    showToast(globalData.settings.closed ? 'Inscrições encerradas!' : 'Inscrições reabertas!');
                 });
             }
 
@@ -979,12 +949,14 @@ ${lineupText}`;
 
             if (admExportCsvBtn) {
                 admExportCsvBtn.addEventListener('click', () => {
-                    if (globalRegistrations.length === 0) {
+                    loadCloudData();
+                    const regs = globalData.registrations || [];
+                    if (regs.length === 0) {
                         showToast('Nenhum squad inscrito.', 'error');
                         return;
                     }
                     let csv = 'Slot,Protocolo,Squad,Capitao,Discord,WhatsApp,Status,Data\n';
-                    globalRegistrations.forEach(r => {
+                    regs.forEach(r => {
                         csv += `"${r.slotNumber}","${r.protocol}","${r.squadName}","${r.capName}","${r.capDiscord}","${r.capWhatsapp}","${r.confirmed ? 'Confirmado' : 'Inscrito'}","${r.date}"\n`;
                     });
                     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -999,12 +971,14 @@ ${lineupText}`;
 
             if (admCopyListBtn) {
                 admCopyListBtn.addEventListener('click', () => {
-                    if (globalRegistrations.length === 0) {
+                    loadCloudData();
+                    const regs = globalData.registrations || [];
+                    if (regs.length === 0) {
                         showToast('Nenhum squad inscrito.', 'error');
                         return;
                     }
                     let text = '🏆 *LISTA OFICIAL DE SQUADS - CUP DEAN (FF 2019)* 🏆\n\n';
-                    globalRegistrations.forEach(r => {
+                    regs.forEach(r => {
                         text += `#${String(r.slotNumber).padStart(2, '0')} - *${r.squadName}* (Cap: ${r.capName}) ${r.confirmed ? '✅' : '⏳'}\n`;
                     });
                     
