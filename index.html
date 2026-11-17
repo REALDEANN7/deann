@@ -507,7 +507,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
-            const PASS_STORAGE_KEY = 'cup_dean_adm_password_v4';
+            const PASS_STORAGE_KEY = 'cup_dean_adm_password_v5';
             const DEFAULT_PASS = '@sme.dnH31';
             const MAX_SLOTS = 12;
             let lastGeneratedReceiptText = '';
@@ -552,7 +552,7 @@
                 }, 3500);
             }
 
-            function compressImage(file, maxSize = 150) {
+            function compressImage(file, maxSize = 120) {
                 return new Promise((resolve) => {
                     const reader = new FileReader();
                     reader.onload = function(event) {
@@ -576,7 +576,7 @@
                             canvas.height = height;
                             const ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0, width, height);
-                            resolve(canvas.toDataURL('image/jpeg', 0.7));
+                            resolve(canvas.toDataURL('image/jpeg', 0.65));
                         };
                         img.onerror = () => resolve('');
                         img.src = event.target.result;
@@ -740,7 +740,7 @@
 
                         if (action === 'toggle-confirm' && targetReg && db) {
                             try {
-                                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cup_dean_squads', id), {
+                                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cup_dean_squads_v2', id), {
                                     confirmed: !targetReg.confirmed
                                 });
                                 showToast('Status atualizado com sucesso!');
@@ -749,7 +749,7 @@
                             }
                         } else if (action === 'delete' && targetReg && db) {
                             try {
-                                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cup_dean_squads', id));
+                                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cup_dean_squads_v2', id));
                                 showToast(`Squad "${targetReg.squadName}" removido.`);
                             } catch (e) {
                                 showToast('Erro ao remover.', 'error');
@@ -759,10 +759,10 @@
                 });
             }
 
-            // Sincronização em tempo real global via Firestore
+            // Sincronização robusta em tempo real usando a coleção v2
             if (db) {
                 try {
-                    onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cup_dean_squads'), (snapshot) => {
+                    onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cup_dean_squads_v2'), (snapshot) => {
                         const list = [];
                         snapshot.forEach((docSnap) => {
                             list.push({ id: docSnap.id, ...docSnap.data() });
@@ -775,13 +775,9 @@
                         }
                     }, (err) => {
                         console.error("Erro na leitura em tempo real:", err);
-                        if (syncStatus) {
-                            syncStatus.className = 'w-2 h-2 rounded-full bg-red-500 inline-block';
-                            syncStatus.title = 'Erro de conexão';
-                        }
                     });
 
-                    onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cup_dean_settings'), (snapshot) => {
+                    onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cup_dean_settings_v2'), (snapshot) => {
                         snapshot.forEach((docSnap) => {
                             if (docSnap.id === 'config') {
                                 globalSettings = docSnap.data();
@@ -852,7 +848,7 @@
 
                         if (db) {
                             try {
-                                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cup_dean_squads', docId), newReg);
+                                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cup_dean_squads_v2', docId), newReg);
                             } catch (e) {
                                 console.error("Erro ao salvar no banco:", e);
                                 showToast('Erro ao salvar no banco de dados.', 'error');
@@ -880,12 +876,12 @@ ${lineupText}`;
                         if (receiptModal) receiptModal.classList.remove('hidden');
 
                         championshipForm.reset();
-                        showToast('Inscrição realizada e salva para todos!');
+                        showToast('Inscrição realizada e salva na nuvem com sucesso!');
                     };
 
                     const logoInput = document.getElementById('squad-logo');
                     if (logoInput && logoInput.files && logoInput.files[0]) {
-                        compressImage(logoInput.files[0], 150).then((compressedBase64) => {
+                        compressImage(logoInput.files[0], 120).then((compressedBase64) => {
                             processRegistration(compressedBase64);
                         });
                     } else {
@@ -950,7 +946,7 @@ ${lineupText}`;
                     const current = globalSettings.closed;
                     if (db) {
                         try {
-                            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cup_dean_settings', 'config'), {
+                            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cup_dean_settings_v2', 'config'), {
                                 closed: !current
                             }, { merge: true });
                             showToast(!current ? 'Inscrições encerradas!' : 'Inscrições reabertas!');
@@ -977,7 +973,7 @@ ${lineupText}`;
             if (admLogoutBtn && adminDashboardModal) {
                 admLogoutBtn.addEventListener('click', () => {
                     adminDashboardModal.classList.add('hidden');
-                    showToast('Desconectado do Painel ADM.');
+                    showToast('Sessão encerrada.');
                 });
             }
 
