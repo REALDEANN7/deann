@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- ... existing code ... -->
 <html lang="pt-BR" class="dark">
 <head>
     <meta charset="UTF-8">
@@ -512,7 +512,6 @@
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(regs));
                     return true;
                 } catch (e) {
-                    // Fallback sem imagem caso o armazenamento esteja cheio
                     try {
                         const withoutHeavyLogos = regs.map(r => ({ ...r, logo: '' }));
                         localStorage.setItem(STORAGE_KEY, JSON.stringify(withoutHeavyLogos));
@@ -523,7 +522,6 @@
                 }
             }
 
-            // Comprime a imagem do logo para não estourar o limite do localStorage no celular
             function compressImage(file, maxSize = 150) {
                 return new Promise((resolve) => {
                     const reader = new FileReader();
@@ -634,7 +632,7 @@
                     } else {
                         const livres = MAX_SLOTS - regs.length;
                         vagasBadgeHeader.textContent = `INSCRIÇÕES ABERTAS • ${livres} ${livres === 1 ? 'VAGA RESTANTE' : 'VAGAS RESTANTES'}`;
-                        vagasBadgeHeader.className = 'text-xs font-bold tracking-wider text-emerald-300 uppercase bg-emerald-950/80 px-3 py-1 rounded border border-emerald-500/40 inline-block';
+                        vagasBadgeHeader.className = 'text-xs font-bold tracking-wider text-emerald-300 uppercase bg-emerald-950/80 px-3 py-1 rounded border border-emerald-500/30 inline-block';
                     }
                 }
 
@@ -997,7 +995,6 @@ ${lineupText}`;
                         return;
                     }
 
-                    // Extrai automaticamente os dados reais do comprovante colado
                     const protocolMatch = text.match(/\*Protocolo:\*\s*([^\n]+)/i);
                     const squadMatch = text.match(/\*Squad:\*\s*([^(|\n]+)/i);
                     const capMatch = text.match(/\*Capitão:\*\s*([^|\n]+)/i);
