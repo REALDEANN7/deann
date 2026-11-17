@@ -510,62 +510,96 @@
             function saveRegistrations(regs) {
                 try {
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(regs));
-                } catch (e) {}
-            }
-
-            function isRegistrationClosed() {
-                try {
-                    return localStorage.getItem(STATUS_STORAGE_KEY) === 'true';
+                    return true;
                 } catch (e) {
-                    return false;
+                    // Fallback sem imagem caso o armazenamento esteja cheio
+                    try {
+                        const withoutHeavyLogos = regs.map(r => ({ ...r, logo: '' }));
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(withoutHeavyLogos));
+                        return true;
+                    } catch (err) {
+                        return false;
+                    }
                 }
             }
 
-            function setRegistrationClosed(closed) {
-                try {
-                    localStorage.setItem(STATUS_STORAGE_KEY, closed ? 'true' : 'false');
-                } catch (e) {}
+            // Comprime a imagem do logo para não estourar o limite do localStorage no celular
+            function compressImage(file, maxSize = 150) {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const img = new Image();
+                        img.onload = function() {
+                            const canvas = document.createElement('canvas');
+                            let width = img.width;
+                            let height = img.height;
+                            if (width > height) {
+                                if (width > maxSize) {
+                                    height = Math.round((height *= maxSize / width));
+                                    width = maxSize;
+                                }
+                            } else {
+                                if (height > maxSize) {
+                                    width = Math.round((width *= maxSize / height));
+                                    height = maxSize;
+                                }
+                            }
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            resolve(canvas.toDataURL('image/jpeg', 0.7));
+                        };
+                        img.onerror = () => resolve('');
+                        img.src = event.target.result;
+                    };
+                    reader.onerror = () => resolve('');
+                    reader.readAsDataURL(file);
+                });
             }
 
             function getAdminPassword() {
-                try {
-                    return localStorage.getItem(PASS_STORAGE_KEY) || DEFAULT_PASS;
-                } catch (e) {
-                    return DEFAULT_PASS;
-                }
+                return localStorage.getItem(PASS_STORAGE_KEY) || DEFAULT_PASS;
             }
 
             function setAdminPassword(newPass) {
-                try {
-                    localStorage.setItem(PASS_STORAGE_KEY, newPass);
-                } catch (e) {}
+                localStorage.setItem(PASS_STORAGE_KEY, newPass);
             }
 
-            function escapeHtml(str) {
-                if (!str) return '';
-                return String(str).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#039;');
+            function isRegistrationClosed() {
+                return localStorage.getItem(STATUS_STORAGE_KEY) === 'true';
+            }
+
+            function setRegistrationClosed(closed) {
+                localStorage.setItem(STATUS_STORAGE_KEY, closed ? 'true' : 'false');
             }
 
             function showToast(message, type = 'success') {
+                const existing = document.getElementById('custom-toast');
+                if (existing) existing.remove();
+
                 const toast = document.createElement('div');
-                toast.className = `fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl border text-xs font-bold text-white shadow-2xl transition-all duration-300 transform translate-y-10 opacity-0 ${type === 'error' ? 'bg-red-950/90 border-red-500 text-red-200' : 'bg-purple-950/90 border-purple-500 text-purple-200'}`;
-                toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-check'} mr-2"></i> ${message}`;
+                toast.id = 'custom-toast';
+                const bgClass = type === 'error'
+                    ? 'bg-red-950/95 border-red-500 text-red-200'
+                    : 'bg-purple-950/95 border-amber-400 text-amber-200';
+                toast.className = `fixed bottom-5 right-5 z-[60] px-4 py-3 rounded-xl border ${bgClass} shadow-2xl text-xs font-bold flex items-center gap-2 transition-all`;
+                toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation text-red-400' : 'fa-circle-check text-amber-400'}"></i><span>${message}</span>`;
                 document.body.appendChild(toast);
-                setTimeout(() => toast.classList.remove('translate-y-10', 'opacity-0'), 100);
+
                 setTimeout(() => {
-                    toast.classList.add('translate-y-10', 'opacity-0');
+                    toast.style.opacity = '0';
                     setTimeout(() => toast.remove(), 300);
                 }, 3500);
             }
 
-            const vagasBadgeHeader = document.getElementById('vagas-badge-header');
+            const slotsDisplayContainer = document.getElementById('slots-display-container');
             const vagasContador = document.getElementById('vagas-contador');
-            const slotsContainer = document.getElementById('slots-display-container');
-            const regForm = document.getElementById('championship-form');
-
+            const vagasBadgeHeader = document.getElementById('vagas-badge-header');
+            const championshipForm = document.getElementById('championship-form');
             const receiptModal = document.getElementById('receipt-modal');
+            const receiptTextEl = document.getElementById('receipt-text');
             const closeReceiptModal = document.getElementById('close-receipt-modal');
-            const receiptTextPre = document.getElementById('receipt-text');
             const copyReceiptBtn = document.getElementById('copy-receipt-btn');
 
             const openAdminModalBtn = document.getElementById('open-admin-modal');
@@ -576,281 +610,246 @@
 
             const adminDashboardModal = document.getElementById('admin-dashboard-modal');
             const closeAdminDashboardBtn = document.getElementById('close-admin-dashboard');
-            const admStatTotal = document.getElementById('adm-stat-total');
-            const admStatConfirmed = document.getElementById('adm-stat-confirmed');
-            const admStatFree = document.getElementById('adm-stat-free');
             const admToggleRegBtn = document.getElementById('adm-toggle-reg');
+            const admSavePassBtn = document.getElementById('adm-save-pass');
+            const admNewPassInput = document.getElementById('adm-new-pass');
+            const admLogoutBtn = document.getElementById('adm-logout-btn');
             const admExportCsvBtn = document.getElementById('adm-export-csv');
             const admCopyListBtn = document.getElementById('adm-copy-list');
-            const admImportInput = document.getElementById('adm-import-input');
             const admImportBtn = document.getElementById('adm-import-btn');
-            const admSquadsContainer = document.getElementById('adm-squads-container');
-            const admNewPassInput = document.getElementById('adm-new-pass');
-            const admSavePassBtn = document.getElementById('adm-save-pass');
-            const admLogoutBtn = document.getElementById('adm-logout-btn');
+            const admImportInput = document.getElementById('adm-import-input');
 
             function updateUI() {
                 const regs = getRegistrations();
                 const closed = isRegistrationClosed() || regs.length >= MAX_SLOTS;
-                const freeSlots = Math.max(0, MAX_SLOTS - regs.length);
+
+                if (vagasContador) {
+                    vagasContador.textContent = `${regs.length}/${MAX_SLOTS} Vagas`;
+                }
 
                 if (vagasBadgeHeader) {
                     if (closed) {
-                        vagasBadgeHeader.textContent = 'VAGAS ESGOTADAS (12/12)';
-                        vagasBadgeHeader.className = 'text-xs font-bold tracking-wider text-red-300 uppercase bg-red-950/80 px-3 py-1 rounded border border-red-500/30 inline-block';
+                        vagasBadgeHeader.textContent = 'INSCRIÇÕES ENCERRADAS (12/12 VAGAS)';
+                        vagasBadgeHeader.className = 'text-xs font-bold tracking-wider text-red-300 uppercase bg-red-950/80 px-3 py-1 rounded border border-red-500/40 inline-block';
                     } else {
-                        vagasBadgeHeader.textContent = `APENAS ${freeSlots} ${freeSlots === 1 ? 'VAGA RESTANTE' : 'VAGAS RESTANTES'} (12 TOTAL)`;
-                        vagasBadgeHeader.className = 'text-xs font-bold tracking-wider text-amber-300 uppercase bg-amber-950/80 px-3 py-1 rounded border border-amber-500/30 inline-block';
+                        const livres = MAX_SLOTS - regs.length;
+                        vagasBadgeHeader.textContent = `INSCRIÇÕES ABERTAS • ${livres} ${livres === 1 ? 'VAGA RESTANTE' : 'VAGAS RESTANTES'}`;
+                        vagasBadgeHeader.className = 'text-xs font-bold tracking-wider text-emerald-300 uppercase bg-emerald-950/80 px-3 py-1 rounded border border-emerald-500/40 inline-block';
                     }
                 }
 
-                if (vagasContador) {
-                    vagasContador.textContent = `${regs.length}/12 Vagas`;
-                }
-
-                renderSlots(regs, closed);
-            }
-
-            function renderSlots(regs, closed) {
-                if (!slotsContainer) return;
-                let html = '';
-                for (let i = 1; i <= MAX_SLOTS; i++) {
-                    const reg = regs[i - 1];
-                    if (reg) {
-                        const logoSrc = reg.logo || 'https://placehold.co/100x100/18181b/c084fc?text=LOGO';
-                        html += `
-                            <div class="p-3 rounded-xl bg-purple-900/30 border border-purple-500/40 flex items-center justify-between">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 rounded-xl bg-black/60 border border-purple-500/50 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                                        <img src="${logoSrc}" alt="Logo" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x100/18181b/c084fc?text=LOGO'">
-                                    </div>
-                                    <div>
-                                        <p class="font-bold text-xs text-white">${escapeHtml(reg.squadName)}</p>
-                                        <p class="text-[10px] text-purple-300/70">Cap: ${escapeHtml(reg.capName)}</p>
-                                    </div>
+                if (slotsDisplayContainer) {
+                    slotsDisplayContainer.innerHTML = '';
+                    for (let i = 1; i <= MAX_SLOTS; i++) {
+                        const reg = regs.find(r => r.slotNumber === i) || regs[i - 1];
+                        const slotCard = document.createElement('div');
+                        if (reg) {
+                            const logoHtml = reg.logo
+                                ? `<img src="${reg.logo}" alt="${reg.squadName}" class="w-6 h-6 rounded-md object-cover border border-amber-400/50 flex-shrink-0">`
+                                : `<div class="w-6 h-6 rounded-md bg-purple-700/50 border border-purple-400/40 flex items-center justify-center text-[10px] font-black text-amber-300 flex-shrink-0">#${String(i).padStart(2, '0')}</div>`;
+                            slotCard.className = 'p-2.5 rounded-xl bg-purple-900/40 border border-amber-500/40 flex items-center gap-2 overflow-hidden';
+                            slotCard.innerHTML = `
+                                ${logoHtml}
+                                <div class="min-w-0 flex-1">
+                                    <span class="block text-[11px] font-extrabold text-white truncate">${reg.squadName}</span>
+                                    <span class="block text-[9px] text-amber-300/90 font-semibold truncate">Vaga #${String(i).padStart(2, '0')} • ${reg.confirmed ? 'Confirmado ✅' : 'Inscrito'}</span>
                                 </div>
-                                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${reg.confirmed ? 'bg-green-950 text-green-400 border border-green-500/30' : 'bg-yellow-950 text-yellow-400 border border-yellow-500/30'}">
-                                    ${reg.confirmed ? 'CONFIRMADO' : 'INSCRITO'}
-                                </span>
-                            </div>
-                        `;
-                    } else {
-                        html += `
-                            <div class="p-3 rounded-xl bg-black/40 border border-purple-900/40 flex items-center justify-between">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 rounded-xl bg-purple-950/60 border border-purple-500/20 flex items-center justify-center text-purple-400 font-bold text-xs font-mono">
-                                        #${String(i).padStart(2, '0')}
-                                    </div>
-                                    <div>
-                                        <p class="font-bold text-xs text-purple-300/60">Logo & Nome do Time</p>
-                                        <p class="text-[10px] text-purple-400/40">Vaga disponível</p>
-                                    </div>
-                                </div>
-                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-950/40 text-purple-300/60 border border-purple-500/20">
-                                    DISPONÍVEL
-                                </span>
-                            </div>
-                        `;
+                            `;
+                        } else {
+                            slotCard.className = 'p-2.5 rounded-xl bg-black/50 border border-purple-900/40 flex items-center gap-2 opacity-60';
+                            slotCard.innerHTML = `
+                                <div class="w-6 h-6 rounded-md bg-purple-950/60 border border-purple-800/40 flex items-center justify-center text-[10px] font-mono text-purple-400">#${String(i).padStart(2, '0')}</div>
+                                <span class="text-[11px] font-medium text-purple-400/70">Vaga Livre</span>
+                            `;
+                        }
+                        slotsDisplayContainer.appendChild(slotCard);
                     }
                 }
-                slotsContainer.innerHTML = html;
+
+                if (championshipForm) {
+                    const submitBtn = championshipForm.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = closed;
+                        if (closed) {
+                            submitBtn.textContent = 'VAGAS ESGOTADAS / INSCRIÇÕES ENCERRADAS';
+                            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                        } else {
+                            submitBtn.textContent = 'GARANTIR VAGA NA CUP DEAN';
+                            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        }
+                    }
+                }
             }
 
             function renderAdminDashboardData() {
                 const regs = getRegistrations();
                 const confirmedCount = regs.filter(r => r.confirmed).length;
-                const freeCount = Math.max(0, MAX_SLOTS - regs.length);
 
-                if (admStatTotal) admStatTotal.textContent = `${regs.length} / 12`;
-                if (admStatConfirmed) admStatConfirmed.textContent = confirmedCount;
-                if (admStatFree) admStatFree.textContent = freeCount;
+                const statTotal = document.getElementById('adm-stat-total');
+                const statConfirmed = document.getElementById('adm-stat-confirmed');
+                const statFree = document.getElementById('adm-stat-free');
+                const container = document.getElementById('adm-squads-container');
+
+                if (statTotal) statTotal.textContent = `${regs.length} / ${MAX_SLOTS}`;
+                if (statConfirmed) statConfirmed.textContent = String(confirmedCount);
+                if (statFree) statFree.textContent = String(Math.max(0, MAX_SLOTS - regs.length));
 
                 if (admToggleRegBtn) {
                     const closed = isRegistrationClosed();
                     admToggleRegBtn.textContent = closed ? 'Reabrir Inscrições' : 'Encerrar Inscrições';
-                    admToggleRegBtn.className = closed ? 'w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs tracking-wider uppercase transition-colors' : 'w-full py-2.5 px-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs tracking-wider uppercase transition-colors';
                 }
 
-                if (admSquadsContainer) {
-                    let html = '';
-                    for (let i = 1; i <= MAX_SLOTS; i++) {
-                        const reg = regs[i - 1];
-                        const slotNumStr = String(i).padStart(2, '0');
-                        if (reg) {
-                            const logoSrc = reg.logo || 'https://placehold.co/100x100/18181b/c084fc?text=LOGO';
-                            const whatsAppClean = (reg.capWhatsapp || '').replace(/\D/g, '');
-                            const whatsAppUrl = whatsAppClean ? `https://wa.me/55${whatsAppClean}?text=Olá%20${encodeURIComponent(reg.capName)},%20sobre%20a%20sua%20inscrição%20na%20CUP%20DEAN:` : '#';
-                            
-                            let playersList = '';
-                            if (reg.players && Array.isArray(reg.players)) {
-                                reg.players.forEach((p, pIdx) => {
-                                    playersList += `<div class="text-[11px] text-purple-300/80">• ${pIdx < 4 ? 'Titular' : 'Reserva'}: ${escapeHtml(p.nick)} (ID: ${escapeHtml(p.id)})</div>`;
-                                });
-                            }
+                if (!container) return;
+                container.innerHTML = '';
 
-                            html += `
-                                <div class="p-4 rounded-xl bg-purple-950/40 border border-purple-500/40 space-y-3">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center space-x-3">
-                                            <div class="w-12 h-12 rounded-xl bg-black/60 border border-purple-500/50 overflow-hidden flex items-center justify-center">
-                                                <img src="${logoSrc}" alt="Logo" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x100/18181b/c084fc?text=LOGO'">
-                                            </div>
-                                            <div>
-                                                <div class="flex items-center gap-2">
-                                                    <span class="px-2 py-0.5 rounded bg-purple-900/60 border border-purple-500/40 text-[10px] font-bold text-purple-300 font-mono">#${slotNumStr}</span>
-                                                    <h5 class="font-extrabold text-sm text-white">${escapeHtml(reg.squadName)}</h5>
-                                                </div>
-                                                <p class="text-xs text-purple-300/80 mt-0.5">Capitão: <strong class="text-white">${escapeHtml(reg.capName)}</strong> | Discord: ${escapeHtml(reg.capDiscord)} | Zap: ${escapeHtml(reg.capWhatsapp)}</p>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-2">
-                                            <button type="button" onclick="window.cupDeanToggleConfirm(${i - 1})" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${reg.confirmed ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-yellow-600 hover:bg-yellow-500 text-white'}">
-                                                ${reg.confirmed ? 'Confirmado' : 'Confirmar Vaga'}
-                                            </button>
-                                            ${whatsAppClean ? `<a href="${whatsAppUrl}" target="_blank" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors flex items-center gap-1"><i class="fa-brands fa-whatsapp"></i> Zap</a>` : ''}
-                                            <button type="button" onclick="window.cupDeanDeleteReg(${i - 1})" class="px-3 py-1.5 rounded-lg bg-red-900/40 hover:bg-red-900 text-red-300 hover:text-white text-xs font-bold transition-colors">
-                                                Excluir
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="p-2.5 rounded-lg bg-black/50 border border-purple-900/50 grid grid-cols-1 md:grid-cols-2 gap-1">
-                                        ${playersList}
-                                    </div>
-                                </div>
-                            `;
-                        } else {
-                            html += `
-                                <div class="p-3 rounded-xl bg-black/40 border border-purple-900/30 flex items-center justify-between">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-10 h-10 rounded-xl bg-purple-950/60 border border-purple-500/20 flex items-center justify-center text-purple-400 font-bold text-xs font-mono">
-                                            #${slotNumStr}
-                                        </div>
-                                        <div>
-                                            <p class="font-bold text-xs text-purple-300/60">Vaga Livre (#${slotNumStr})</p>
-                                            <p class="text-[10px] text-purple-400/40">Nenhum squad inscrito nesta vaga</p>
-                                        </div>
-                                    </div>
-                                    <span class="px-2.5 py-1 rounded text-xs font-bold bg-purple-950/40 text-purple-300/60 border border-purple-500/20">
-                                        LIVRE
-                                    </span>
-                                </div>
-                            `;
+                if (regs.length === 0) {
+                    container.innerHTML = '<p class="text-xs text-purple-300/60 text-center py-6">Nenhum squad inscrito ainda.</p>';
+                    return;
+                }
+
+                regs.forEach((reg, index) => {
+                    const playersList = (reg.players || [])
+                        .map((p, idx) => `${idx === 4 ? 'Reserva' : '#' + (idx + 1)}: ${p.nick} (${p.id})`)
+                        .join(' | ');
+
+                    const item = document.createElement('div');
+                    item.className = 'p-3.5 rounded-xl bg-black/60 border border-purple-500/30 flex flex-col md:flex-row md:items-center justify-between gap-3';
+                    item.innerHTML = `
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[11px] font-bold">#${String(index + 1).padStart(2, '0')}</span>
+                                <span class="font-extrabold text-white text-sm">${reg.squadName}</span>
+                                <span class="text-[10px] font-mono text-purple-400">(${reg.protocol})</span>
+                            </div>
+                            <p class="text-xs text-purple-200/80">
+                                <strong>Cap:</strong> ${reg.capName} • <strong>Discord:</strong> ${reg.capDiscord} • <strong>Zap:</strong> ${reg.capWhatsapp}
+                            </p>
+                            <p class="text-[11px] text-purple-300/70 font-mono">${playersList}</p>
+                        </div>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <button type="button" data-action="toggle-confirm" data-index="${index}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${reg.confirmed ? 'bg-emerald-600/30 border border-emerald-500 text-emerald-300' : 'bg-amber-600/30 border border-amber-500 text-amber-300'}">
+                                ${reg.confirmed ? 'Confirmado ✅' : 'Confirmar'}
+                            </button>
+                            <button type="button" data-action="delete" data-index="${index}" class="px-3 py-1.5 rounded-lg bg-red-900/40 border border-red-500/40 text-red-300 hover:bg-red-800 hover:text-white text-xs font-bold transition-colors">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+
+                container.querySelectorAll('button[data-action]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const idx = Number(btn.getAttribute('data-index'));
+                        const action = btn.getAttribute('data-action');
+                        const currentRegs = getRegistrations();
+
+                        if (action === 'toggle-confirm' && currentRegs[idx]) {
+                            currentRegs[idx].confirmed = !currentRegs[idx].confirmed;
+                            saveRegistrations(currentRegs);
+                            updateUI();
+                            renderAdminDashboardData();
+                            showToast('Status da vaga atualizado!');
+                        } else if (action === 'delete' && currentRegs[idx]) {
+                            const removedName = currentRegs[idx].squadName;
+                            currentRegs.splice(idx, 1);
+                            currentRegs.forEach((r, i) => { r.slotNumber = i + 1; });
+                            saveRegistrations(currentRegs);
+                            updateUI();
+                            renderAdminDashboardData();
+                            showToast(`Squad "${removedName}" removido.`);
                         }
-                    }
-                    admSquadsContainer.innerHTML = html;
-                }
+                    });
+                });
             }
 
-            window.cupDeanToggleConfirm = function(index) {
-                const regs = getRegistrations();
-                if (regs[index]) {
-                    regs[index].confirmed = !regs[index].confirmed;
-                    saveRegistrations(regs);
-                    updateUI();
-                    renderAdminDashboardData();
-                    showToast('Status de confirmação atualizado!');
-                }
-            };
-
-            window.cupDeanDeleteReg = function(index) {
-                if (confirm('Tem certeza que deseja excluir este Squad? A vaga será liberada imediatamente.')) {
-                    const regs = getRegistrations();
-                    regs.splice(index, 1);
-                    saveRegistrations(regs);
-                    updateUI();
-                    renderAdminDashboardData();
-                    showToast('Squad removido com sucesso!');
-                }
-            };
-
-            if (regForm) {
-                regForm.addEventListener('submit', (e) => {
+            if (championshipForm) {
+                championshipForm.addEventListener('submit', (e) => {
                     e.preventDefault();
+
                     const regs = getRegistrations();
-                    if (regs.length >= MAX_SLOTS || isRegistrationClosed()) {
-                        showToast('As inscrições para a CUP DEAN estão encerradas (12/12 vagas preenchidas)!', 'error');
+                    if (isRegistrationClosed() || regs.length >= MAX_SLOTS) {
+                        showToast('As inscrições estão encerradas!', 'error');
                         return;
                     }
 
                     const squadName = document.getElementById('squad-name').value.trim();
-                    const logoInput = document.getElementById('squad-logo');
                     const capName = document.getElementById('cap-name').value.trim();
                     const capDiscord = document.getElementById('cap-discord').value.trim();
                     const capWhatsapp = document.getElementById('cap-whatsapp').value.trim();
-                    
-                    const p1Nick = document.getElementById('p1-nick').value.trim();
-                    const p1Id = document.getElementById('p1-id').value.trim();
-                    const p2Nick = document.getElementById('p2-nick').value.trim();
-                    const p2Id = document.getElementById('p2-id').value.trim();
-                    const p3Nick = document.getElementById('p3-nick').value.trim();
-                    const p3Id = document.getElementById('p3-id').value.trim();
-                    const p4Nick = document.getElementById('p4-nick').value.trim();
-                    const p4Id = document.getElementById('p4-id').value.trim();
+
+                    const players = [
+                        { nick: document.getElementById('p1-nick').value.trim(), id: document.getElementById('p1-id').value.trim() },
+                        { nick: document.getElementById('p2-nick').value.trim(), id: document.getElementById('p2-id').value.trim() },
+                        { nick: document.getElementById('p3-nick').value.trim(), id: document.getElementById('p3-id').value.trim() },
+                        { nick: document.getElementById('p4-nick').value.trim(), id: document.getElementById('p4-id').value.trim() }
+                    ];
+
                     const subNick = document.getElementById('sub-nick').value.trim();
                     const subId = document.getElementById('sub-id').value.trim();
-
-                    const slotNumber = regs.length + 1;
-                    const protocol = `CUP-${String(slotNumber).padStart(2, '0')}/12-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+                    if (subNick || subId) {
+                        players.push({ nick: subNick || 'Reserva', id: subId || '-' });
+                    }
 
                     const processRegistration = (logoBase64) => {
-                        const currentRegs = getRegistrations();
-                        const newSlotNum = currentRegs.length + 1;
-                        if (newSlotNum > MAX_SLOTS) {
-                            showToast('Vagas esgotadas!', 'error');
+                        const freshRegs = getRegistrations();
+                        if (freshRegs.length >= MAX_SLOTS) {
+                            showToast('As 12 vagas acabaram de ser preenchidas!', 'error');
                             return;
                         }
 
+                        const slotNumber = freshRegs.length + 1;
+                        const now = new Date();
+                        const day = String(now.getDate()).padStart(2, '0');
+                        const month = String(now.getMonth() + 1).padStart(2, '0');
+                        const randCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+                        const protocol = `CUP-${day}/${month}-${randCode}`;
+
                         const newReg = {
                             protocol,
-                            slotNumber: newSlotNum,
+                            slotNumber,
                             squadName,
-                            logo: logoBase64 || '',
+                            logo: logoBase64,
                             capName,
                             capDiscord,
                             capWhatsapp,
-                            players: [
-                                { nick: p1Nick, id: p1Id },
-                                { nick: p2Nick, id: p2Id },
-                                { nick: p3Nick, id: p3Id },
-                                { nick: p4Nick, id: p4Id },
-                                ...(subNick ? [{ nick: subNick, id: subId }] : [])
-                            ],
+                            players,
                             confirmed: false,
-                            date: new Date().toLocaleString('pt-BR')
+                            date: now.toLocaleString('pt-BR')
                         };
 
-                        currentRegs.push(newReg);
-                        saveRegistrations(currentRegs);
+                        freshRegs.push(newReg);
+                        saveRegistrations(freshRegs);
                         updateUI();
 
-                        lastGeneratedReceiptText = `🏆 *COMPROVANTE DE INSCRIÇÃO - CUP DEAN (FF 2019)* 🏆\n` +
-                            `🔹 *Protocolo:* ${protocol}\n` +
-                            `🔹 *Squad:* ${squadName} (Vaga #${String(newSlotNum).padStart(2, '0')})\n` +
-                            `🔹 *Capitão:* ${capName} | Discord: ${capDiscord} | WhatsApp: ${capWhatsapp}\n` +
-                            `👥 *Line-up:* \n` +
-                            `1. ${p1Nick} (ID: ${p1Id})\n` +
-                            `2. ${p2Nick} (ID: ${p2Id})\n` +
-                            `3. ${p3Nick} (ID: ${p3Id})\n` +
-                            `4. ${p4Nick} (ID: ${p4Id})\n` +
-                            (subNick ? `Reserva: ${subNick} (ID: ${subId})\n` : '') +
-                            `\n✅ Inscrição realizada com sucesso! Cole este comprovante no canal #inscrições do Discord oficial.`;
+                        let lineupText = players
+                            .slice(0, 4)
+                            .map((p, i) => `${i + 1}. ${p.nick} (ID: ${p.id})`)
+                            .join('\n');
+                        if (players[4]) {
+                            lineupText += `\nReserva: ${players[4].nick} (ID: ${players[4].id})`;
+                        }
 
-                        if (receiptTextPre) receiptTextPre.textContent = lastGeneratedReceiptText;
+                        lastGeneratedReceiptText =
+`🏆 *COMPROVANTE DE INSCRIÇÃO - CUP DEAN (FF 2019)* 🏆
+🔹 *Protocolo:* ${protocol}
+🔹 *Squad:* ${squadName} (Vaga #${String(slotNumber).padStart(2, '0')})
+🔹 *Capitão:* ${capName} | Discord: ${capDiscord} | WhatsApp: ${capWhatsapp}
+👥 *Line-up:*
+${lineupText}`;
+
+                        if (receiptTextEl) receiptTextEl.textContent = lastGeneratedReceiptText;
                         if (receiptModal) receiptModal.classList.remove('hidden');
-                        regForm.reset();
 
-                        // Abre o grupo oficial do WhatsApp automaticamente após finalizar o cadastro
-                        setTimeout(() => {
-                            window.open('https://chat.whatsapp.com/JDETccDZaWV8XMj7lX6VR7', '_blank', 'noopener,noreferrer');
-                        }, 600);
+                        championshipForm.reset();
+                        showToast('Vaga garantida com sucesso!');
                     };
 
+                    const logoInput = document.getElementById('squad-logo');
                     if (logoInput && logoInput.files && logoInput.files[0]) {
-                        const reader = new FileReader();
-                        reader.onload = function(uploadEvent) {
-                            processRegistration(uploadEvent.target.result);
-                        };
-                        reader.readAsDataURL(logoInput.files[0]);
+                        compressImage(logoInput.files[0], 150).then((compressedBase64) => {
+                            processRegistration(compressedBase64);
+                        });
                     } else {
                         processRegistration('');
                     }
@@ -895,18 +894,12 @@
                     const entered = adminPasswordInput ? adminPasswordInput.value : '';
                     if (entered === getAdminPassword()) {
                         if (adminLoginModal) adminLoginModal.classList.add('hidden');
-                        if (adminDashboardModal) adminDashboardModal.classList.remove('hidden');
                         renderAdminDashboardData();
-                        showToast('Painel ADM aberto com sucesso!');
+                        if (adminDashboardModal) adminDashboardModal.classList.remove('hidden');
+                        showToast('Bem-vindo ao Painel ADM!');
                     } else {
                         showToast('Senha incorreta!', 'error');
                     }
-                });
-            }
-
-            if (openAdminModalBtn) {
-                openAdminModalBtn.addEventListener('click', () => {
-                    renderAdminDashboardData();
                 });
             }
 
@@ -1004,20 +997,38 @@
                         return;
                     }
 
+                    // Extrai automaticamente os dados reais do comprovante colado
+                    const protocolMatch = text.match(/\*Protocolo:\*\s*([^\n]+)/i);
+                    const squadMatch = text.match(/\*Squad:\*\s*([^(|\n]+)/i);
+                    const capMatch = text.match(/\*Capitão:\*\s*([^|\n]+)/i);
+                    const discordMatch = text.match(/Discord:\s*([^|\n]+)/i);
+                    const zapMatch = text.match(/WhatsApp:\s*([^\n]+)/i);
+
+                    const players = [];
+                    const playerRegex = /^[1-4]\.\s*(.+?)\s*\(ID:\s*([^)]+)\)/gm;
+                    let match;
+                    while ((match = playerRegex.exec(text)) !== null) {
+                        players.push({ nick: match[1].trim(), id: match[2].trim() });
+                    }
+                    const subMatch = text.match(/Reserva:\s*(.+?)\s*\(ID:\s*([^)]+)\)/i);
+                    if (subMatch) {
+                        players.push({ nick: subMatch[1].trim(), id: subMatch[2].trim() });
+                    }
+
                     const slotNumber = regs.length + 1;
                     const newReg = {
-                        protocol: `IMP-${String(slotNumber).padStart(2, '0')}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
+                        protocol: protocolMatch ? protocolMatch[1].trim() : `IMP-${String(slotNumber).padStart(2, '0')}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
                         slotNumber,
-                        squadName: 'Squad Importado ' + slotNumber,
+                        squadName: squadMatch ? squadMatch[1].trim() : 'Squad ' + slotNumber,
                         logo: '',
-                        capName: 'Capitão (Importado)',
-                        capDiscord: 'discord#0000',
-                        capWhatsapp: '(00) 00000-0000',
-                        players: [
-                            { nick: 'Titular 1', id: '1111' },
-                            { nick: 'Titular 2', id: '2222' },
-                            { nick: 'Titular 3', id: '3333' },
-                            { nick: 'Titular 4', id: '4444' }
+                        capName: capMatch ? capMatch[1].trim() : 'Capitão',
+                        capDiscord: discordMatch ? discordMatch[1].trim() : '-',
+                        capWhatsapp: zapMatch ? zapMatch[1].trim() : '-',
+                        players: players.length > 0 ? players : [
+                            { nick: 'Titular 1', id: '-' },
+                            { nick: 'Titular 2', id: '-' },
+                            { nick: 'Titular 3', id: '-' },
+                            { nick: 'Titular 4', id: '-' }
                         ],
                         confirmed: true,
                         date: new Date().toLocaleString('pt-BR')
@@ -1028,7 +1039,7 @@
                     updateUI();
                     renderAdminDashboardData();
                     admImportInput.value = '';
-                    showToast('Comprovante importado e vaga preenchida com sucesso!');
+                    showToast(`Squad "${newReg.squadName}" importado para a vaga #${String(slotNumber).padStart(2, '0')}!`);
                 });
             }
 
