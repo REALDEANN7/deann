@@ -1,88 +1,135 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deann - Hub de Links</title>
+    <title>Hub & CUP DEAN - DEANN</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#050508',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #0c0913;
-            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            background-color: #030305;
+            color: #f3f4f6;
             background-image: 
-                radial-gradient(circle at 20% 20%, rgba(138, 43, 226, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 80% 80%, rgba(160, 32, 240, 0.1) 0%, transparent 40%);
+                radial-gradient(circle at 10% 20%, rgba(126, 34, 206, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(79, 70, 229, 0.15) 0%, transparent 40%);
             background-attachment: fixed;
         }
         .neon-glow {
-            box-shadow: 0 0 20px rgba(138, 43, 226, 0.4);
+            box-shadow: 0 0 25px -5px rgba(168, 85, 247, 0.35);
         }
-        .neon-glow:hover {
-            box-shadow: 0 0 30px rgba(160, 32, 240, 0.7);
+        .gold-glow {
+            box-shadow: 0 0 25px -5px rgba(234, 179, 8, 0.4);
         }
-        .live-pulse {
-            animation: pulse-red 2s infinite;
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
-        @keyframes pulse-red {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            50% { transform: scale(1.05); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.8; }
+        ::-webkit-scrollbar-track {
+            background: #09090b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #7e22ce;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9333ea;
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-between p-6">
+<body class="min-h-screen flex flex-col items-center justify-start py-8 px-4 selection:bg-purple-600 selection:text-white">
 
-    <!-- Container Principal -->
-    <main class="w-full max-w-md mx-auto flex flex-col items-center space-y-6 my-auto">
+    <!-- Container Principal do Hub -->
+    <main class="w-full max-w-md mx-auto flex flex-col items-center space-y-6">
         
-        <!-- Área de Prévia / Live TikTok -->
-        <div class="w-full">
-            <a href="https://www.tiktok.com/@realdeann" target="_blank" rel="noopener noreferrer" class="block group relative rounded-2xl overflow-hidden border-2 border-purple-600/50 bg-gradient-to-b from-purple-950/40 to-black neon-glow transition-all duration-300 transform hover:-translate-y-1">
-                <!-- Header do Card de Live -->
-                <div class="absolute top-3 left-3 z-10 flex items-center space-x-2 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full border border-purple-500/30">
-                    <span class="w-3 h-3 bg-red-600 rounded-full live-pulse"></span>
-                    <span class="text-xs font-bold tracking-wider text-red-400 uppercase">AO VIVO NO TIKTOK</span>
+        <!-- Perfil do Streamer -->
+        <div class="flex flex-col items-center space-y-3 text-center">
+            <div class="relative">
+                <div class="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-purple-600 via-indigo-600 to-amber-400 neon-glow">
+                    <img src="https://placehold.co/200x200/18181b/c084fc?text=DEANN" alt="DEANN FF" class="w-full h-full object-cover rounded-full" onerror="this.src='https://placehold.co/200x200/18181b/ffffff?text=DEANN'">
                 </div>
+                <span class="absolute bottom-0 right-0 w-6 h-6 bg-emerald-500 border-2 border-black rounded-full flex items-center justify-center text-[10px] text-white" title="Online na Live">
+                    <i class="fa-solid fa-circle text-[8px] animate-pulse"></i>
+                </span>
+            </div>
+            <div>
+                <h1 class="text-xl font-black tracking-tight text-white flex items-center justify-center gap-1.5">
+                    DEANN FF <i class="fa-solid fa-circle-check text-purple-400 text-xs"></i>
+                </h1>
+                <p class="text-xs text-purple-300/80 font-medium mt-0.5">Streamer & Competitivo Free Fire 2019</p>
+            </div>
+        </div>
 
-                <!-- Imagem/Thumbnail representativa da Live -->
-                <div class="relative aspect-video w-full bg-slate-900 flex items-center justify-center overflow-hidden">
-                    <div class="absolute inset-0 bg-cover bg-center opacity-60 group-hover:scale-105 transition-transform duration-500" style="background-image: url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1000&auto=format&fit=crop');"></div>
-                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
-                    
-                    <!-- Ícone Central de Play / TikTok -->
-                    <div class="z-10 bg-purple-600/80 group-hover:bg-purple-600 text-white w-14 h-14 rounded-full flex items-center justify-center backdrop-blur-sm transition-all shadow-lg group-hover:scale-110">
-                        <i class="fa-brands fa-tiktok text-2xl"></i>
-                    </div>
+        <!-- Preview da Live / TikTok Status -->
+        <div class="w-full bg-gradient-to-r from-purple-950/80 via-slate-900/90 to-purple-950/80 border border-purple-500/40 rounded-2xl p-4 neon-glow flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-red-600/20 border border-red-500/40 flex items-center justify-center text-red-500 animate-pulse">
+                    <i class="fa-solid fa-tower-broadcast text-lg"></i>
                 </div>
-
-                <!-- Rodapé do Card -->
-                <div class="p-4 text-center bg-black/60 backdrop-blur-md border-t border-purple-900/40">
-                    <h2 class="font-bold text-lg text-white group-hover:text-purple-300 transition-colors">DEANN // LIVE STREAM</h2>
-                    <p class="text-xs text-purple-300/80 mt-1">Clique para assistir direto no TikTok @realdeann</p>
+                <div>
+                    <span class="block font-bold text-white text-xs">Live Diária no TikTok</span>
+                    <a href="https://www.tiktok.com/@realdeann" target="_blank" class="text-[11px] text-purple-300 hover:text-white underline">@realdeann</a>
                 </div>
+            </div>
+            <a href="https://www.tiktok.com/@realdeann" target="_blank" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-red-600 to-purple-600 text-white font-bold text-xs uppercase tracking-wider hover:brightness-110 transition-all">
+                Assistir
             </a>
         </div>
 
-        <!-- Nome e Nick -->
-        <div class="text-center space-y-1">
-            <h1 class="text-2xl font-extrabold tracking-wide text-white flex items-center justify-center gap-2">
-                DEANN <span class="text-purple-500 text-sm bg-purple-950/80 px-2 py-0.5 rounded border border-purple-500/30">FF</span>
-            </h1>
-            <p class="text-xs text-purple-300/70 font-medium">@realdeann | Streamer & Content Creator</p>
-        </div>
+        <!-- Botão Destaque para a CUP DEAN -->
+        <a href="#campeonato-section" class="w-full group relative flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-amber-600 via-purple-700 to-indigo-700 border-2 border-amber-400/60 gold-glow transition-all duration-300 transform hover:-translate-y-1">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-black/40 flex items-center justify-center text-amber-300 group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-trophy text-lg"></i>
+                </div>
+                <div>
+                    <span class="block font-extrabold text-white text-sm">CUP DEAN (SQUAD)</span>
+                    <span class="text-xs text-amber-200/90 font-semibold">Exclusivo Free Fire 2019 • Apenas 12 Vagas</span>
+                </div>
+            </div>
+            <i class="fa-solid fa-chevron-down text-amber-300 group-hover:translate-y-0.5 transition-transform"></i>
+        </a>
 
-        <!-- Lista de Links -->
-        <div class="w-full flex flex-col space-y-4">
+        <!-- Lista de Links Oficiais -->
+        <div class="w-full flex flex-col space-y-3">
             
+            <!-- Resgatar Codiguin -->
+            <a href="https://reedem.privateproject.com.br/?utm_source=ig&utm_medium=social&utm_content=link_in_bio" target="_blank" rel="noopener noreferrer" 
+               class="group relative flex items-center justify-between p-3.5 rounded-xl bg-gradient-to-r from-amber-600/40 via-purple-900/40 to-slate-900/80 border border-amber-500/50 hover:border-amber-400 gold-glow transition-all duration-300">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-400 group-hover:bg-amber-500 group-hover:text-black transition-colors">
+                        <i class="fa-solid fa-gift text-base"></i>
+                    </div>
+                    <div>
+                        <span class="block font-bold text-white text-sm">Resgatar Codiguin</span>
+                    </div>
+                </div>
+                <i class="fa-solid fa-arrow-right text-amber-400 group-hover:translate-x-1 transition-transform"></i>
+            </a>
+
             <!-- LivePix -->
             <a href="https://livepix.gg/deann777" target="_blank" rel="noopener noreferrer" 
-               class="group relative flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-purple-900/40 to-slate-900/80 border border-purple-500/40 hover:border-purple-400 neon-glow transition-all duration-300 transform hover:-translate-y-0.5">
+               class="group relative flex items-center justify-between p-3.5 rounded-xl bg-gradient-to-r from-purple-900/40 to-slate-900/80 border border-purple-500/40 hover:border-purple-400 neon-glow transition-all duration-300">
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-lg bg-purple-600/20 flex items-center justify-center text-purple-400 group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                        <i class="fa-solid fa-bolt text-lg"></i>
+                    <div class="w-9 h-9 rounded-xl bg-purple-600/20 flex items-center justify-center text-purple-400 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                        <i class="fa-solid fa-bolt text-base"></i>
                     </div>
                     <div>
                         <span class="block font-bold text-white text-sm">LivePix</span>
@@ -94,10 +141,10 @@
 
             <!-- Download FF2019 (Discord) -->
             <a href="https://discord.gg/DckgFMAm" target="_blank" rel="noopener noreferrer" 
-               class="group relative flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-purple-900/40 to-slate-900/80 border border-purple-500/40 hover:border-purple-400 neon-glow transition-all duration-300 transform hover:-translate-y-0.5">
+               class="group relative flex items-center justify-between p-3.5 rounded-xl bg-gradient-to-r from-purple-900/40 to-slate-900/80 border border-purple-500/40 hover:border-purple-400 neon-glow transition-all duration-300">
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-lg bg-indigo-600/20 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                        <i class="fa-brands fa-discord text-lg"></i>
+                    <div class="w-9 h-9 rounded-xl bg-indigo-600/20 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                        <i class="fa-brands fa-discord text-base"></i>
                     </div>
                     <div>
                         <span class="block font-bold text-white text-sm">Download FF2019</span>
@@ -109,10 +156,10 @@
 
             <!-- YouTube -->
             <a href="https://www.youtube.com/@Realdeann" target="_blank" rel="noopener noreferrer" 
-               class="group relative flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-purple-900/40 to-slate-900/80 border border-purple-500/40 hover:border-purple-400 neon-glow transition-all duration-300 transform hover:-translate-y-0.5">
+               class="group relative flex items-center justify-between p-3.5 rounded-xl bg-gradient-to-r from-purple-900/40 to-slate-900/80 border border-purple-500/40 hover:border-purple-400 neon-glow transition-all duration-300">
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-lg bg-red-600/20 flex items-center justify-center text-red-400 group-hover:bg-red-600 group-hover:text-white transition-colors">
-                        <i class="fa-brands fa-youtube text-lg"></i>
+                    <div class="w-9 h-9 rounded-xl bg-red-600/20 flex items-center justify-center text-red-400 group-hover:bg-red-600 group-hover:text-white transition-colors">
+                        <i class="fa-brands fa-youtube text-base"></i>
                     </div>
                     <div>
                         <span class="block font-bold text-white text-sm">YouTube</span>
@@ -124,10 +171,10 @@
 
             <!-- TikTok -->
             <a href="https://www.tiktok.com/@realdeann" target="_blank" rel="noopener noreferrer" 
-               class="group relative flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-purple-900/40 to-slate-900/80 border border-purple-500/40 hover:border-purple-400 neon-glow transition-all duration-300 transform hover:-translate-y-0.5">
+               class="group relative flex items-center justify-between p-3.5 rounded-xl bg-gradient-to-r from-purple-900/40 to-slate-900/80 border border-purple-500/40 hover:border-purple-400 neon-glow transition-all duration-300">
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-lg bg-cyan-600/20 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-600 group-hover:text-white transition-colors">
-                        <i class="fa-brands fa-tiktok text-lg"></i>
+                    <div class="w-9 h-9 rounded-xl bg-cyan-600/20 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-600 group-hover:text-white transition-colors">
+                        <i class="fa-brands fa-tiktok text-base"></i>
                     </div>
                     <div>
                         <span class="block font-bold text-white text-sm">TikTok</span>
@@ -139,12 +186,854 @@
 
         </div>
 
+        <!-- SEÇÃO OFICIAL: CUP DEAN (SQUAD) -->
+        <section id="campeonato-section" class="w-full mt-6 bg-gradient-to-b from-purple-950/60 via-slate-950 to-black border-2 border-purple-500/50 rounded-2xl p-5 neon-glow space-y-5">
+            <div class="text-center space-y-3 border-b border-purple-900/60 pb-4">
+                <!-- Logo Oficial da CUP DEAN -->
+                <div class="flex justify-center mb-2">
+                    <div class="w-36 h-36 rounded-2xl p-1 bg-gradient-to-tr from-red-600 via-purple-600 to-amber-500 shadow-2xl flex items-center justify-center overflow-hidden">
+                        <img src="./logo-cup-deann.jpg" alt="CUP DEAN Logo" class="w-full h-full object-cover rounded-xl bg-black/80" onerror="this.src='https://placehold.co/200x200/18181b/ef4444?text=CUP+DEANN'">
+                    </div>
+                </div>
+
+                <div class="inline-flex items-center justify-center gap-2 bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-full text-amber-300 text-xs font-bold uppercase tracking-wider">
+                    <i class="fa-solid fa-crown text-amber-400"></i> Torneio Oficial • 05 de Dezembro
+                </div>
+                <h3 class="text-xl font-extrabold tracking-wide text-white">CUP DEAN</h3>
+                
+                <!-- Aviso Versão 2019 Extremamente Destacado -->
+                <div class="my-3 p-3 rounded-xl bg-gradient-to-r from-red-950 via-purple-950 to-red-950 border-2 border-red-500 text-amber-300 text-xs font-black uppercase tracking-wider shadow-xl animate-pulse flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation text-base"></i> EXCLUSIVO PARA FREE FIRE VERSÃO 2019 <i class="fa-solid fa-triangle-exclamation text-base"></i>
+                </div>
+
+                <p id="vagas-badge-header" class="text-xs font-bold tracking-wider text-purple-300 uppercase bg-purple-950/80 px-3 py-1 rounded border border-purple-500/30 inline-block">
+                    Carregando vagas...
+                </p>
+            </div>
+
+            <!-- Informações Básicas, Data, Premiação e Regras -->
+            <div class="space-y-3 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-3 rounded-xl bg-purple-950/40 border border-purple-500/30">
+                        <span class="text-purple-300/70 block font-medium">Data do Evento</span>
+                        <span class="font-bold text-white text-sm">05 de Dezembro 📅</span>
+                    </div>
+                    <div class="p-3 rounded-xl bg-purple-950/40 border border-purple-500/30">
+                        <span class="text-purple-300/70 block font-medium">Plataformas</span>
+                        <span class="font-bold text-amber-400 text-sm">Emulador & Mobile 📱💻</span>
+                    </div>
+                    <div class="p-3 rounded-xl bg-purple-950/40 border border-purple-500/30">
+                        <span class="text-purple-300/70 block font-medium">Formato</span>
+                        <span class="font-bold text-white text-sm">Squad (4 + 1 Reserva)</span>
+                    </div>
+                    <div class="p-3 rounded-xl bg-purple-950/40 border border-purple-500/30">
+                        <span class="text-purple-300/70 block font-medium">Regras</span>
+                        <span class="font-bold text-purple-200 text-sm">Regras LBFF 📋</span>
+                    </div>
+                </div>
+
+                <!-- Card de Premiação Oficial -->
+                <div class="p-3.5 rounded-xl bg-gradient-to-r from-amber-950/60 via-purple-950/60 to-amber-950/60 border border-amber-500/40 space-y-2">
+                    <span class="text-amber-300 font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-trophy text-amber-400"></i> Premiação Oficial
+                    </span>
+                    <div class="grid grid-cols-1 gap-1.5 text-purple-100">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold text-[11px]">1º LUGAR</span>
+                            <span class="font-bold text-white">R$ 100,00 para o Time Campeão 💸</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold text-[11px]">MVP</span>
+                            <span class="font-bold text-white">1 Codiguin + Troféu Físico (enviado via Correios) 🏆📦</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vagas Ocupadas Display (#01 a #12) -->
+            <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="font-bold text-purple-300 uppercase tracking-wider">Status das 12 Vagas</span>
+                    <span id="vagas-contador" class="font-mono font-bold text-white">0/12 Vagas</span>
+                </div>
+                <div id="slots-display-container" class="grid grid-cols-2 gap-2">
+                    <!-- Preenchido via script -->
+                </div>
+            </div>
+
+            <!-- Formulário de Inscrição SQUAD -->
+            <form id="championship-form" class="space-y-4 pt-2 border-t border-purple-900/60">
+                <h4 class="font-bold text-sm text-purple-200 flex items-center gap-2">
+                    <i class="fa-solid fa-users text-purple-400"></i> Ficha de Inscrição do Squad
+                </h4>
+
+                <div class="space-y-3">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-purple-200 mb-1">Nome do Squad / Guilda *</label>
+                            <input type="text" id="squad-name" required placeholder="Ex: DEANN ESPORTS" class="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-purple-500/40 focus:border-purple-400 focus:outline-none text-xs text-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-purple-200 mb-1">Logo / Escudo do Time *</label>
+                            <input type="file" id="squad-logo" accept="image/*" required class="w-full px-3 py-2 rounded-xl bg-black/60 border border-purple-500/40 text-xs text-purple-300 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-purple-600 file:text-white hover:file:bg-purple-500 cursor-pointer">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-2">
+                        <div>
+                            <label class="block text-xs font-semibold text-purple-200 mb-1">Nome do Capitão *</label>
+                            <input type="text" id="cap-name" required placeholder="Seu nome" class="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-purple-500/40 focus:border-purple-400 focus:outline-none text-xs text-white">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-semibold text-purple-200 mb-1">Discord (Obrigatório) *</label>
+                                <input type="text" id="cap-discord" required placeholder="ex: deann#1234" class="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-purple-500/40 focus:border-purple-400 focus:outline-none text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-purple-200 mb-1">WhatsApp (Obrigatório) *</label>
+                                <input type="text" id="cap-whatsapp" required placeholder="(XX) 9XXXX-XXXX" class="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-purple-500/40 focus:border-purple-400 focus:outline-none text-xs text-white">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Line-up Titular -->
+                    <div class="p-3 rounded-xl bg-purple-950/50 border border-purple-500/30 space-y-2.5">
+                        <span class="text-xs font-bold text-purple-300 block uppercase">Titulares (4 Jogadores)</span>
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="p1-nick" required placeholder="Nick Titular 1 (Capitão)" class="px-3 py-2 rounded-xl bg-black/60 border border-purple-500/30 text-xs text-white">
+                            <input type="text" id="p1-id" required placeholder="ID FF 1" class="px-3 py-2 rounded-xl bg-black/60 border border-purple-500/30 text-xs text-white font-mono">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="p2-nick" required placeholder="Nick Titular 2" class="px-3 py-2 rounded-xl bg-black/60 border border-purple-500/30 text-xs text-white">
+                            <input type="text" id="p2-id" required placeholder="ID FF 2" class="px-3 py-2 rounded-xl bg-black/60 border border-purple-500/30 text-xs text-white font-mono">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="p3-nick" required placeholder="Nick Titular 3" class="px-3 py-2 rounded-xl bg-black/60 border border-purple-500/30 text-xs text-white">
+                            <input type="text" id="p3-id" required placeholder="ID FF 3" class="px-3 py-2 rounded-xl bg-black/60 border border-purple-500/30 text-xs text-white font-mono">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="p4-nick" required placeholder="Nick Titular 4" class="px-3 py-2 rounded-xl bg-black/60 border border-purple-500/30 text-xs text-white">
+                            <input type="text" id="p4-id" required placeholder="ID FF 4" class="px-3 py-2 rounded-xl bg-black/60 border border-purple-500/30 text-xs text-white font-mono">
+                        </div>
+                    </div>
+
+                    <!-- Reserva Opcional -->
+                    <div class="p-3 rounded-xl bg-black/40 border border-purple-900/50 space-y-2">
+                        <span class="text-[11px] font-bold text-purple-300/80 block uppercase">Reserva (Opcional)</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="sub-nick" placeholder="Nick Reserva" class="px-3 py-2 rounded-xl bg-black/60 border border-purple-500/30 text-xs text-white">
+                            <input type="text" id="sub-id" placeholder="ID FF Reserva" class="px-3 py-2 rounded-xl bg-black/60 border border-purple-500/30 text-xs text-white font-mono">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-purple-600 to-indigo-600 hover:brightness-110 text-white font-extrabold text-xs tracking-wider uppercase gold-glow transition-all">
+                    GARANTIR VAGA NA CUP DEAN
+                </button>
+            </form>
+        </section>
+
     </main>
 
     <!-- Rodapé -->
-    <footer class="mt-8 text-center text-xs text-purple-400/50">
-        &copy; 2026 Deann. Todos os direitos reservados.
+    <footer class="mt-8 text-center text-xs text-purple-400/50 space-y-2">
+        <p>&copy; 2026 DEANN FF. Todos os direitos reservados.</p>
+        <p>
+            <a href="#" id="open-admin-modal" class="text-purple-400/70 hover:text-purple-300 underline text-[11px]">
+                <i class="fa-solid fa-shield-halved mr-1"></i> Área do Organizador (ADM)
+            </a>
+        </p>
     </footer>
 
+    <!-- Modal de Comprovante de Inscrição -->
+    <div id="receipt-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="relative w-full max-w-md bg-gradient-to-b from-purple-950/90 via-slate-950 to-black border-2 border-amber-500/60 rounded-2xl gold-glow p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-purple-900/60 pb-3">
+                <h3 class="font-extrabold text-base text-amber-300 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-check"></i> Inscrição Realizada!
+                </h3>
+                <button type="button" id="close-receipt-modal" class="text-purple-300 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <p class="text-xs text-purple-200/90">
+                Seu Squad foi registrado com sucesso! Entre agora no <strong class="text-emerald-400">Grupo Oficial do WhatsApp</strong> (onde sairão as salas, tabelas e classificações) e copie seu comprovante abaixo:
+            </p>
+
+            <div class="p-3 rounded-xl bg-black/80 border border-purple-500/40 text-[11px] font-mono text-purple-200 max-h-48 overflow-y-auto whitespace-pre-wrap select-all" id="receipt-text"></div>
+
+            <div class="flex flex-col gap-2 pt-2">
+                <a href="https://chat.whatsapp.com/JDETccDZaWV8XMj7lX6VR7" target="_blank" rel="noopener noreferrer" class="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs uppercase tracking-wider text-center transition-colors flex items-center justify-center gap-2 shadow-lg">
+                    <i class="fa-brands fa-whatsapp text-base"></i> Entrar no Grupo do WhatsApp
+                </a>
+                <button type="button" id="copy-receipt-btn" class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-copy"></i> Copiar Comprovante
+                </button>
+                <a href="https://discord.gg/DckgFMAm" target="_blank" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-wider text-center transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-brands fa-discord"></i> Ir para o Discord
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Login ADM -->
+    <div id="admin-login-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="relative w-full max-w-sm bg-gradient-to-b from-purple-950/90 via-slate-950 to-black border-2 border-purple-500/60 rounded-2xl neon-glow p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-purple-900/60 pb-3">
+                <h3 class="font-extrabold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-lock text-purple-400"></i> Acesso Restrito ADM
+                </h3>
+                <button type="button" id="close-admin-login" class="text-purple-300 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <form id="admin-login-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-purple-200 mb-1.5">Senha do Organizador</label>
+                    <input type="password" id="admin-password-input" required placeholder="Digite a senha..."
+                        class="w-full px-4 py-3 rounded-xl bg-black/60 border border-purple-500/40 focus:border-purple-400 focus:outline-none text-sm text-white placeholder-purple-400/40 transition-colors">
+                </div>
+
+                <button type="submit" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-600 hover:brightness-110 text-white font-bold text-xs tracking-wider uppercase neon-glow transition-all">
+                    Entrar no Painel ADM
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal do Painel ADM (Gerenciamento) -->
+    <div id="admin-dashboard-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-b from-purple-950/90 via-slate-950 to-black border-2 border-purple-500/60 rounded-2xl neon-glow p-6 space-y-6">
+            <div class="flex items-center justify-between border-b border-purple-900/60 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-600/30 border border-purple-500/50 flex items-center justify-center text-purple-300">
+                        <i class="fa-solid fa-shield-halved text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-lg text-white">PAINEL DO ORGANIZADOR</h3>
+                        <p class="text-xs text-purple-300/70">Gestão oficial da CUP DEAN (12 Vagas)</p>
+                    </div>
+                </div>
+                <button type="button" id="close-admin-dashboard" class="w-9 h-9 rounded-xl bg-black/50 border border-purple-500/30 text-purple-300 hover:bg-purple-900/40 hover:text-white flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <!-- Estatísticas -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="p-4 rounded-xl bg-purple-900/20 border border-purple-500/30">
+                    <span class="text-xs text-purple-300/70 block">Total Inscritos</span>
+                    <span id="adm-stat-total" class="text-2xl font-black text-white">0 / 12</span>
+                </div>
+                <div class="p-4 rounded-xl bg-green-900/20 border border-green-500/30">
+                    <span class="text-xs text-green-300/70 block">Confirmados</span>
+                    <span id="adm-stat-confirmed" class="text-2xl font-black text-green-400">0</span>
+                </div>
+                <div class="p-4 rounded-xl bg-yellow-900/20 border border-yellow-500/30">
+                    <span class="text-xs text-yellow-300/70 block">Vagas Livres</span>
+                    <span id="adm-stat-free" class="text-2xl font-black text-yellow-400">12</span>
+                </div>
+                <div class="flex flex-col justify-center gap-2">
+                    <button type="button" id="adm-toggle-reg" class="w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs tracking-wider uppercase transition-colors">
+                        Alternar Inscrições
+                    </button>
+                </div>
+            </div>
+
+            <!-- Ferramentas -->
+            <div class="flex flex-wrap gap-3 items-center justify-between bg-black/50 p-4 rounded-xl border border-purple-500/30">
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" id="adm-export-csv" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-file-csv"></i> Exportar CSV
+                    </button>
+                    <button type="button" id="adm-copy-list" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-copy"></i> Copiar Lista para Discord
+                    </button>
+                </div>
+                <div class="flex gap-2 w-full md:w-auto">
+                    <input type="text" id="adm-import-input" placeholder="Cole o texto do comprovante..." class="px-3 py-2 rounded-lg bg-black/80 border border-purple-500/40 text-xs text-white w-full md:w-64 focus:outline-none focus:border-purple-400">
+                    <button type="button" id="adm-import-btn" class="px-4 py-2 rounded-lg bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold transition-colors whitespace-nowrap">
+                        Importar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Lista de Squads -->
+            <div class="space-y-3">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-purple-300">Gerenciamento de Vagas (#01 a #12)</h4>
+                <div id="adm-squads-container" class="space-y-2 max-h-96 overflow-y-auto pr-2">
+                    <!-- Preenchido por JS -->
+                </div>
+            </div>
+
+            <!-- Configurações de Senha e Logout -->
+            <div class="border-t border-purple-900/60 pt-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="w-full md:w-auto">
+                    <span class="text-xs text-purple-300/80 block">Alterar Senha do Administrador</span>
+                    <div class="flex gap-2 mt-1">
+                        <input type="password" id="adm-new-pass" placeholder="Nova senha..." class="px-3 py-2 rounded-lg bg-black/60 border border-purple-500/40 text-xs text-white w-48 focus:outline-none">
+                        <button type="button" id="adm-save-pass" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition-colors">
+                            Salvar Nova Senha
+                        </button>
+                    </div>
+                </div>
+                <button type="button" id="adm-logout-btn" class="px-4 py-2 rounded-lg bg-red-900/40 border border-red-500/40 text-red-300 hover:bg-red-900 hover:text-white text-xs font-bold transition-colors">
+                    Sair do Painel
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const STORAGE_KEY = 'cup_dean_squad_registrations_v3';
+            const PASS_STORAGE_KEY = 'cup_dean_adm_password_v3';
+            const STATUS_STORAGE_KEY = 'cup_dean_reg_closed_v3';
+            const DEFAULT_PASS = '@sme.dnH31';
+            const MAX_SLOTS = 12;
+            let lastGeneratedReceiptText = '';
+
+            function getRegistrations() {
+                try {
+                    const data = localStorage.getItem(STORAGE_KEY);
+                    if (!data) return [];
+                    const parsed = JSON.parse(data);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function saveRegistrations(regs) {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(regs));
+                } catch (e) {}
+            }
+
+            function isRegistrationClosed() {
+                try {
+                    return localStorage.getItem(STATUS_STORAGE_KEY) === 'true';
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            function setRegistrationClosed(closed) {
+                try {
+                    localStorage.setItem(STATUS_STORAGE_KEY, closed ? 'true' : 'false');
+                } catch (e) {}
+            }
+
+            function getAdminPassword() {
+                try {
+                    return localStorage.getItem(PASS_STORAGE_KEY) || DEFAULT_PASS;
+                } catch (e) {
+                    return DEFAULT_PASS;
+                }
+            }
+
+            function setAdminPassword(newPass) {
+                try {
+                    localStorage.setItem(PASS_STORAGE_KEY, newPass);
+                } catch (e) {}
+            }
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                return String(str).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#039;');
+            }
+
+            function showToast(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = `fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl border text-xs font-bold text-white shadow-2xl transition-all duration-300 transform translate-y-10 opacity-0 ${type === 'error' ? 'bg-red-950/90 border-red-500 text-red-200' : 'bg-purple-950/90 border-purple-500 text-purple-200'}`;
+                toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-check'} mr-2"></i> ${message}`;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.classList.remove('translate-y-10', 'opacity-0'), 100);
+                setTimeout(() => {
+                    toast.classList.add('translate-y-10', 'opacity-0');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3500);
+            }
+
+            const vagasBadgeHeader = document.getElementById('vagas-badge-header');
+            const vagasContador = document.getElementById('vagas-contador');
+            const slotsContainer = document.getElementById('slots-display-container');
+            const regForm = document.getElementById('championship-form');
+
+            const receiptModal = document.getElementById('receipt-modal');
+            const closeReceiptModal = document.getElementById('close-receipt-modal');
+            const receiptTextPre = document.getElementById('receipt-text');
+            const copyReceiptBtn = document.getElementById('copy-receipt-btn');
+
+            const openAdminModalBtn = document.getElementById('open-admin-modal');
+            const adminLoginModal = document.getElementById('admin-login-modal');
+            const closeAdminLoginBtn = document.getElementById('close-admin-login');
+            const adminLoginForm = document.getElementById('admin-login-form');
+            const adminPasswordInput = document.getElementById('admin-password-input');
+
+            const adminDashboardModal = document.getElementById('admin-dashboard-modal');
+            const closeAdminDashboardBtn = document.getElementById('close-admin-dashboard');
+            const admStatTotal = document.getElementById('adm-stat-total');
+            const admStatConfirmed = document.getElementById('adm-stat-confirmed');
+            const admStatFree = document.getElementById('adm-stat-free');
+            const admToggleRegBtn = document.getElementById('adm-toggle-reg');
+            const admExportCsvBtn = document.getElementById('adm-export-csv');
+            const admCopyListBtn = document.getElementById('adm-copy-list');
+            const admImportInput = document.getElementById('adm-import-input');
+            const admImportBtn = document.getElementById('adm-import-btn');
+            const admSquadsContainer = document.getElementById('adm-squads-container');
+            const admNewPassInput = document.getElementById('adm-new-pass');
+            const admSavePassBtn = document.getElementById('adm-save-pass');
+            const admLogoutBtn = document.getElementById('adm-logout-btn');
+
+            function updateUI() {
+                const regs = getRegistrations();
+                const closed = isRegistrationClosed() || regs.length >= MAX_SLOTS;
+                const freeSlots = Math.max(0, MAX_SLOTS - regs.length);
+
+                if (vagasBadgeHeader) {
+                    if (closed) {
+                        vagasBadgeHeader.textContent = 'VAGAS ESGOTADAS (12/12)';
+                        vagasBadgeHeader.className = 'text-xs font-bold tracking-wider text-red-300 uppercase bg-red-950/80 px-3 py-1 rounded border border-red-500/30 inline-block';
+                    } else {
+                        vagasBadgeHeader.textContent = `APENAS ${freeSlots} ${freeSlots === 1 ? 'VAGA RESTANTE' : 'VAGAS RESTANTES'} (12 TOTAL)`;
+                        vagasBadgeHeader.className = 'text-xs font-bold tracking-wider text-amber-300 uppercase bg-amber-950/80 px-3 py-1 rounded border border-amber-500/30 inline-block';
+                    }
+                }
+
+                if (vagasContador) {
+                    vagasContador.textContent = `${regs.length}/12 Vagas`;
+                }
+
+                renderSlots(regs, closed);
+            }
+
+            function renderSlots(regs, closed) {
+                if (!slotsContainer) return;
+                let html = '';
+                for (let i = 1; i <= MAX_SLOTS; i++) {
+                    const reg = regs[i - 1];
+                    if (reg) {
+                        const logoSrc = reg.logo || 'https://placehold.co/100x100/18181b/c084fc?text=LOGO';
+                        html += `
+                            <div class="p-3 rounded-xl bg-purple-900/30 border border-purple-500/40 flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-xl bg-black/60 border border-purple-500/50 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                                        <img src="${logoSrc}" alt="Logo" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x100/18181b/c084fc?text=LOGO'">
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-xs text-white">${escapeHtml(reg.squadName)}</p>
+                                        <p class="text-[10px] text-purple-300/70">Cap: ${escapeHtml(reg.capName)}</p>
+                                    </div>
+                                </div>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${reg.confirmed ? 'bg-green-950 text-green-400 border border-green-500/30' : 'bg-yellow-950 text-yellow-400 border border-yellow-500/30'}">
+                                    ${reg.confirmed ? 'CONFIRMADO' : 'INSCRITO'}
+                                </span>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="p-3 rounded-xl bg-black/40 border border-purple-900/40 flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-xl bg-purple-950/60 border border-purple-500/20 flex items-center justify-center text-purple-400 font-bold text-xs font-mono">
+                                        #${String(i).padStart(2, '0')}
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-xs text-purple-300/60">Logo & Nome do Time</p>
+                                        <p class="text-[10px] text-purple-400/40">Vaga disponível</p>
+                                    </div>
+                                </div>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-950/40 text-purple-300/60 border border-purple-500/20">
+                                    DISPONÍVEL
+                                </span>
+                            </div>
+                        `;
+                    }
+                }
+                slotsContainer.innerHTML = html;
+            }
+
+            function renderAdminDashboardData() {
+                const regs = getRegistrations();
+                const confirmedCount = regs.filter(r => r.confirmed).length;
+                const freeCount = Math.max(0, MAX_SLOTS - regs.length);
+
+                if (admStatTotal) admStatTotal.textContent = `${regs.length} / 12`;
+                if (admStatConfirmed) admStatConfirmed.textContent = confirmedCount;
+                if (admStatFree) admStatFree.textContent = freeCount;
+
+                if (admToggleRegBtn) {
+                    const closed = isRegistrationClosed();
+                    admToggleRegBtn.textContent = closed ? 'Reabrir Inscrições' : 'Encerrar Inscrições';
+                    admToggleRegBtn.className = closed ? 'w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs tracking-wider uppercase transition-colors' : 'w-full py-2.5 px-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs tracking-wider uppercase transition-colors';
+                }
+
+                if (admSquadsContainer) {
+                    let html = '';
+                    for (let i = 1; i <= MAX_SLOTS; i++) {
+                        const reg = regs[i - 1];
+                        const slotNumStr = String(i).padStart(2, '0');
+                        if (reg) {
+                            const logoSrc = reg.logo || 'https://placehold.co/100x100/18181b/c084fc?text=LOGO';
+                            const whatsAppClean = (reg.capWhatsapp || '').replace(/\D/g, '');
+                            const whatsAppUrl = whatsAppClean ? `https://wa.me/55${whatsAppClean}?text=Olá%20${encodeURIComponent(reg.capName)},%20sobre%20a%20sua%20inscrição%20na%20CUP%20DEAN:` : '#';
+                            
+                            let playersList = '';
+                            if (reg.players && Array.isArray(reg.players)) {
+                                reg.players.forEach((p, pIdx) => {
+                                    playersList += `<div class="text-[11px] text-purple-300/80">• ${pIdx < 4 ? 'Titular' : 'Reserva'}: ${escapeHtml(p.nick)} (ID: ${escapeHtml(p.id)})</div>`;
+                                });
+                            }
+
+                            html += `
+                                <div class="p-4 rounded-xl bg-purple-950/40 border border-purple-500/40 space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-12 h-12 rounded-xl bg-black/60 border border-purple-500/50 overflow-hidden flex items-center justify-center">
+                                                <img src="${logoSrc}" alt="Logo" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x100/18181b/c084fc?text=LOGO'">
+                                            </div>
+                                            <div>
+                                                <div class="flex items-center gap-2">
+                                                    <span class="px-2 py-0.5 rounded bg-purple-900/60 border border-purple-500/40 text-[10px] font-bold text-purple-300 font-mono">#${slotNumStr}</span>
+                                                    <h5 class="font-extrabold text-sm text-white">${escapeHtml(reg.squadName)}</h5>
+                                                </div>
+                                                <p class="text-xs text-purple-300/80 mt-0.5">Capitão: <strong class="text-white">${escapeHtml(reg.capName)}</strong> | Discord: ${escapeHtml(reg.capDiscord)} | Zap: ${escapeHtml(reg.capWhatsapp)}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <button type="button" onclick="window.cupDeanToggleConfirm(${i - 1})" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${reg.confirmed ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-yellow-600 hover:bg-yellow-500 text-white'}">
+                                                ${reg.confirmed ? 'Confirmado' : 'Confirmar Vaga'}
+                                            </button>
+                                            ${whatsAppClean ? `<a href="${whatsAppUrl}" target="_blank" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors flex items-center gap-1"><i class="fa-brands fa-whatsapp"></i> Zap</a>` : ''}
+                                            <button type="button" onclick="window.cupDeanDeleteReg(${i - 1})" class="px-3 py-1.5 rounded-lg bg-red-900/40 hover:bg-red-900 text-red-300 hover:text-white text-xs font-bold transition-colors">
+                                                Excluir
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="p-2.5 rounded-lg bg-black/50 border border-purple-900/50 grid grid-cols-1 md:grid-cols-2 gap-1">
+                                        ${playersList}
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            html += `
+                                <div class="p-3 rounded-xl bg-black/40 border border-purple-900/30 flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 rounded-xl bg-purple-950/60 border border-purple-500/20 flex items-center justify-center text-purple-400 font-bold text-xs font-mono">
+                                            #${slotNumStr}
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-xs text-purple-300/60">Vaga Livre (#${slotNumStr})</p>
+                                            <p class="text-[10px] text-purple-400/40">Nenhum squad inscrito nesta vaga</p>
+                                        </div>
+                                    </div>
+                                    <span class="px-2.5 py-1 rounded text-xs font-bold bg-purple-950/40 text-purple-300/60 border border-purple-500/20">
+                                        LIVRE
+                                    </span>
+                                </div>
+                            `;
+                        }
+                    }
+                    admSquadsContainer.innerHTML = html;
+                }
+            }
+
+            window.cupDeanToggleConfirm = function(index) {
+                const regs = getRegistrations();
+                if (regs[index]) {
+                    regs[index].confirmed = !regs[index].confirmed;
+                    saveRegistrations(regs);
+                    updateUI();
+                    renderAdminDashboardData();
+                    showToast('Status de confirmação atualizado!');
+                }
+            };
+
+            window.cupDeanDeleteReg = function(index) {
+                if (confirm('Tem certeza que deseja excluir este Squad? A vaga será liberada imediatamente.')) {
+                    const regs = getRegistrations();
+                    regs.splice(index, 1);
+                    saveRegistrations(regs);
+                    updateUI();
+                    renderAdminDashboardData();
+                    showToast('Squad removido com sucesso!');
+                }
+            };
+
+            if (regForm) {
+                regForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const regs = getRegistrations();
+                    if (regs.length >= MAX_SLOTS || isRegistrationClosed()) {
+                        showToast('As inscrições para a CUP DEAN estão encerradas (12/12 vagas preenchidas)!', 'error');
+                        return;
+                    }
+
+                    const squadName = document.getElementById('squad-name').value.trim();
+                    const logoInput = document.getElementById('squad-logo');
+                    const capName = document.getElementById('cap-name').value.trim();
+                    const capDiscord = document.getElementById('cap-discord').value.trim();
+                    const capWhatsapp = document.getElementById('cap-whatsapp').value.trim();
+                    
+                    const p1Nick = document.getElementById('p1-nick').value.trim();
+                    const p1Id = document.getElementById('p1-id').value.trim();
+                    const p2Nick = document.getElementById('p2-nick').value.trim();
+                    const p2Id = document.getElementById('p2-id').value.trim();
+                    const p3Nick = document.getElementById('p3-nick').value.trim();
+                    const p3Id = document.getElementById('p3-id').value.trim();
+                    const p4Nick = document.getElementById('p4-nick').value.trim();
+                    const p4Id = document.getElementById('p4-id').value.trim();
+                    const subNick = document.getElementById('sub-nick').value.trim();
+                    const subId = document.getElementById('sub-id').value.trim();
+
+                    const slotNumber = regs.length + 1;
+                    const protocol = `CUP-${String(slotNumber).padStart(2, '0')}/12-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+                    const processRegistration = (logoBase64) => {
+                        const currentRegs = getRegistrations();
+                        const newSlotNum = currentRegs.length + 1;
+                        if (newSlotNum > MAX_SLOTS) {
+                            showToast('Vagas esgotadas!', 'error');
+                            return;
+                        }
+
+                        const newReg = {
+                            protocol,
+                            slotNumber: newSlotNum,
+                            squadName,
+                            logo: logoBase64 || '',
+                            capName,
+                            capDiscord,
+                            capWhatsapp,
+                            players: [
+                                { nick: p1Nick, id: p1Id },
+                                { nick: p2Nick, id: p2Id },
+                                { nick: p3Nick, id: p3Id },
+                                { nick: p4Nick, id: p4Id },
+                                ...(subNick ? [{ nick: subNick, id: subId }] : [])
+                            ],
+                            confirmed: false,
+                            date: new Date().toLocaleString('pt-BR')
+                        };
+
+                        currentRegs.push(newReg);
+                        saveRegistrations(currentRegs);
+                        updateUI();
+
+                        lastGeneratedReceiptText = `🏆 *COMPROVANTE DE INSCRIÇÃO - CUP DEAN (FF 2019)* 🏆\n` +
+                            `🔹 *Protocolo:* ${protocol}\n` +
+                            `🔹 *Squad:* ${squadName} (Vaga #${String(newSlotNum).padStart(2, '0')})\n` +
+                            `🔹 *Capitão:* ${capName} | Discord: ${capDiscord} | WhatsApp: ${capWhatsapp}\n` +
+                            `👥 *Line-up:* \n` +
+                            `1. ${p1Nick} (ID: ${p1Id})\n` +
+                            `2. ${p2Nick} (ID: ${p2Id})\n` +
+                            `3. ${p3Nick} (ID: ${p3Id})\n` +
+                            `4. ${p4Nick} (ID: ${p4Id})\n` +
+                            (subNick ? `Reserva: ${subNick} (ID: ${subId})\n` : '') +
+                            `\n✅ Inscrição realizada com sucesso! Cole este comprovante no canal #inscrições do Discord oficial.`;
+
+                        if (receiptTextPre) receiptTextPre.textContent = lastGeneratedReceiptText;
+                        if (receiptModal) receiptModal.classList.remove('hidden');
+                        regForm.reset();
+
+                        // Abre o grupo oficial do WhatsApp automaticamente após finalizar o cadastro
+                        setTimeout(() => {
+                            window.open('https://chat.whatsapp.com/JDETccDZaWV8XMj7lX6VR7', '_blank', 'noopener,noreferrer');
+                        }, 600);
+                    };
+
+                    if (logoInput && logoInput.files && logoInput.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function(uploadEvent) {
+                            processRegistration(uploadEvent.target.result);
+                        };
+                        reader.readAsDataURL(logoInput.files[0]);
+                    } else {
+                        processRegistration('');
+                    }
+                });
+            }
+
+            if (closeReceiptModal && receiptModal) {
+                closeReceiptModal.addEventListener('click', () => receiptModal.classList.add('hidden'));
+            }
+
+            if (copyReceiptBtn) {
+                copyReceiptBtn.addEventListener('click', () => {
+                    const tempTextArea = document.createElement('textarea');
+                    tempTextArea.value = lastGeneratedReceiptText;
+                    document.body.appendChild(tempTextArea);
+                    tempTextArea.select();
+                    try {
+                        document.execCommand('copy');
+                        showToast('Comprovante copiado com sucesso!');
+                    } catch (err) {
+                        showToast('Erro ao copiar comprovante.', 'error');
+                    }
+                    document.body.removeChild(tempTextArea);
+                });
+            }
+
+            if (openAdminModalBtn && adminLoginModal) {
+                openAdminModalBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (adminPasswordInput) adminPasswordInput.value = '';
+                    adminLoginModal.classList.remove('hidden');
+                });
+            }
+
+            if (closeAdminLoginBtn && adminLoginModal) {
+                closeAdminLoginBtn.addEventListener('click', () => adminLoginModal.classList.add('hidden'));
+            }
+
+            if (adminLoginForm) {
+                adminLoginForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const entered = adminPasswordInput ? adminPasswordInput.value : '';
+                    if (entered === getAdminPassword()) {
+                        if (adminLoginModal) adminLoginModal.classList.add('hidden');
+                        if (adminDashboardModal) adminDashboardModal.classList.remove('hidden');
+                        renderAdminDashboardData();
+                        showToast('Painel ADM aberto com sucesso!');
+                    } else {
+                        showToast('Senha incorreta!', 'error');
+                    }
+                });
+            }
+
+            if (openAdminModalBtn) {
+                openAdminModalBtn.addEventListener('click', () => {
+                    renderAdminDashboardData();
+                });
+            }
+
+            if (closeAdminDashboardBtn && adminDashboardModal) {
+                closeAdminDashboardBtn.addEventListener('click', () => adminDashboardModal.classList.add('hidden'));
+            }
+
+            if (admToggleRegBtn) {
+                admToggleRegBtn.addEventListener('click', () => {
+                    const current = isRegistrationClosed();
+                    setRegistrationClosed(!current);
+                    updateUI();
+                    renderAdminDashboardData();
+                    showToast(!current ? 'Inscrições encerradas manualmente.' : 'Inscrições reabertas!');
+                });
+            }
+
+            if (admSavePassBtn && admNewPassInput) {
+                admSavePassBtn.addEventListener('click', () => {
+                    const newPass = admNewPassInput.value.trim();
+                    if (!newPass) {
+                        showToast('Digite uma senha válida.', 'error');
+                        return;
+                    }
+                    setAdminPassword(newPass);
+                    admNewPassInput.value = '';
+                    showToast('Senha do ADM alterada com sucesso!');
+                });
+            }
+
+            if (admLogoutBtn && adminDashboardModal) {
+                admLogoutBtn.addEventListener('click', () => {
+                    adminDashboardModal.classList.add('hidden');
+                    showToast('Desconectado do Painel ADM.');
+                });
+            }
+
+            if (admExportCsvBtn) {
+                admExportCsvBtn.addEventListener('click', () => {
+                    const regs = getRegistrations();
+                    if (regs.length === 0) {
+                        showToast('Nenhum squad inscrito para exportar.', 'error');
+                        return;
+                    }
+                    let csv = 'Slot,Protocolo,Squad,Capitao,Discord,WhatsApp,Status,Data\n';
+                    regs.forEach(r => {
+                        csv += `"${r.slotNumber}","${r.protocol}","${r.squadName}","${r.capName}","${r.capDiscord}","${r.capWhatsapp}","${r.confirmed ? 'Confirmado' : 'Inscrito'}","${r.date}"\n`;
+                    });
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'cup_dean_squads.csv';
+                    a.click();
+                    showToast('Planilha CSV exportada com sucesso!');
+                });
+            }
+
+            if (admCopyListBtn) {
+                admCopyListBtn.addEventListener('click', () => {
+                    const regs = getRegistrations();
+                    if (regs.length === 0) {
+                        showToast('Nenhum squad inscrito.', 'error');
+                        return;
+                    }
+                    let text = '🏆 *LISTA OFICIAL DE SQUADS - CUP DEAN (FF 2019)* 🏆\n\n';
+                    regs.forEach(r => {
+                        text += `#${String(r.slotNumber).padStart(2, '0')} - *${r.squadName}* (Cap: ${r.capName}) ${r.confirmed ? '✅' : '⏳'}\n`;
+                    });
+                    
+                    const tempArea = document.createElement('textarea');
+                    tempArea.value = text;
+                    document.body.appendChild(tempArea);
+                    tempArea.select();
+                    try {
+                        document.execCommand('copy');
+                        showToast('Lista copiada para o Discord!');
+                    } catch (e) {
+                        showToast('Erro ao copiar lista.', 'error');
+                    }
+                    document.body.removeChild(tempArea);
+                });
+            }
+
+            if (admImportBtn && admImportInput) {
+                admImportBtn.addEventListener('click', () => {
+                    const text = admImportInput.value.trim();
+                    if (!text) {
+                        showToast('Cole o texto do comprovante primeiro.', 'error');
+                        return;
+                    }
+                    const regs = getRegistrations();
+                    if (regs.length >= MAX_SLOTS) {
+                        showToast('Todas as 12 vagas já estão preenchidas!', 'error');
+                        return;
+                    }
+
+                    const slotNumber = regs.length + 1;
+                    const newReg = {
+                        protocol: `IMP-${String(slotNumber).padStart(2, '0')}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
+                        slotNumber,
+                        squadName: 'Squad Importado ' + slotNumber,
+                        logo: '',
+                        capName: 'Capitão (Importado)',
+                        capDiscord: 'discord#0000',
+                        capWhatsapp: '(00) 00000-0000',
+                        players: [
+                            { nick: 'Titular 1', id: '1111' },
+                            { nick: 'Titular 2', id: '2222' },
+                            { nick: 'Titular 3', id: '3333' },
+                            { nick: 'Titular 4', id: '4444' }
+                        ],
+                        confirmed: true,
+                        date: new Date().toLocaleString('pt-BR')
+                    };
+
+                    regs.push(newReg);
+                    saveRegistrations(regs);
+                    updateUI();
+                    renderAdminDashboardData();
+                    admImportInput.value = '';
+                    showToast('Comprovante importado e vaga preenchida com sucesso!');
+                });
+            }
+
+            updateUI();
+        });
+    </script>
 </body>
 </html>
