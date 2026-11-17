@@ -253,11 +253,15 @@
             <!-- Vagas Ocupadas Display (#01 a #12) -->
             <div class="space-y-2">
                 <div class="flex items-center justify-between text-xs">
-                    <span class="font-bold text-purple-300 uppercase tracking-wider">Status das 12 Vagas</span>
-                    <span id="vagas-contador" class="font-mono font-bold text-white">0/12 Vagas</span>
+                    <span class="font-bold text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
+                        Status das 12 Vagas <span id="sync-status" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block" title="Sincronizando em tempo real..."></span>
+                    </span>
+                    <span id="vagas-contador" class="font-mono font-bold text-white">Carregando...</span>
                 </div>
                 <div id="slots-display-container" class="grid grid-cols-2 gap-2">
-                    <!-- Preenchido via script -->
+                    <div class="p-3 rounded-xl bg-purple-900/20 border border-purple-500/20 col-span-2 text-center text-xs text-purple-300/70 animate-pulse">
+                        <i class="fa-solid fa-spinner fa-spin mr-1"></i> Carregando vagas da nuvem...
+                    </div>
                 </div>
             </div>
 
@@ -499,7 +503,7 @@
             db = getFirestore(app);
             auth = getAuth(app);
         } catch (e) {
-            console.error("Firebase init error:", e);
+            console.error("Erro ao inicializar Firebase:", e);
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -508,7 +512,7 @@
             const MAX_SLOTS = 12;
             let lastGeneratedReceiptText = '';
 
-            // Autenticação Firebase (Regra obrigatória antes das queries)
+            // Autenticação obrigatória antes de qualquer consulta no Firestore
             if (auth) {
                 try {
                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -517,7 +521,7 @@
                         await signInAnonymously(auth);
                     }
                 } catch (err) {
-                    console.error("Auth error:", err);
+                    console.error("Erro de autenticação:", err);
                 }
             }
 
@@ -585,6 +589,7 @@
             const slotsDisplayContainer = document.getElementById('slots-display-container');
             const vagasContador = document.getElementById('vagas-contador');
             const vagasBadgeHeader = document.getElementById('vagas-badge-header');
+            const syncStatus = document.getElementById('sync-status');
             const championshipForm = document.getElementById('championship-form');
             const receiptModal = document.getElementById('receipt-modal');
             const receiptTextEl = document.getElementById('receipt-text');
@@ -608,6 +613,11 @@
 
             function updateUI() {
                 const closed = globalSettings.closed || globalRegistrations.length >= MAX_SLOTS;
+
+                if (syncStatus) {
+                    syncStatus.className = 'w-2 h-2 rounded-full bg-emerald-400 inline-block';
+                    syncStatus.title = 'Sincronizado em nuvem em tempo real';
+                }
 
                 if (vagasContador) {
                     vagasContador.textContent = `${globalRegistrations.length}/${MAX_SLOTS} Vagas`;
@@ -733,7 +743,7 @@
                                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cup_dean_squads', id), {
                                     confirmed: !targetReg.confirmed
                                 });
-                                showToast('Status atualizado na nuvem!');
+                                showToast('Status atualizado com sucesso!');
                             } catch (e) {
                                 showToast('Erro ao atualizar.', 'error');
                             }
@@ -749,7 +759,7 @@
                 });
             }
 
-            // OUVIR FIRESTORE EM TEMPO REAL (Regra 1: strict paths / sem queries compostas)
+            // Sincronização em tempo real global via Firestore
             if (db) {
                 try {
                     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cup_dean_squads'), (snapshot) => {
@@ -764,7 +774,11 @@
                             renderAdminDashboardData();
                         }
                     }, (err) => {
-                        console.error("Firestore snapshot error:", err);
+                        console.error("Erro na leitura em tempo real:", err);
+                        if (syncStatus) {
+                            syncStatus.className = 'w-2 h-2 rounded-full bg-red-500 inline-block';
+                            syncStatus.title = 'Erro de conexão';
+                        }
                     });
 
                     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cup_dean_settings'), (snapshot) => {
@@ -775,10 +789,10 @@
                             }
                         });
                     }, (err) => {
-                        console.error("Settings snapshot error:", err);
+                        console.error("Erro nas configurações:", err);
                     });
                 } catch (e) {
-                    console.error("Firestore error:", e);
+                    console.error("Erro no Firestore:", e);
                 }
             }
 
@@ -840,7 +854,7 @@
                             try {
                                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cup_dean_squads', docId), newReg);
                             } catch (e) {
-                                console.error("Error saving to firestore:", e);
+                                console.error("Erro ao salvar no banco:", e);
                                 showToast('Erro ao salvar no banco de dados.', 'error');
                                 return;
                             }
@@ -866,7 +880,7 @@ ${lineupText}`;
                         if (receiptModal) receiptModal.classList.remove('hidden');
 
                         championshipForm.reset();
-                        showToast('Vaga garantida e salva na nuvem com sucesso!');
+                        showToast('Inscrição realizada e salva para todos!');
                     };
 
                     const logoInput = document.getElementById('squad-logo');
@@ -939,7 +953,7 @@ ${lineupText}`;
                             await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cup_dean_settings', 'config'), {
                                 closed: !current
                             }, { merge: true });
-                            showToast(!current ? 'Inscrições encerradas manualmente.' : 'Inscrições reabertas!');
+                            showToast(!current ? 'Inscrições encerradas!' : 'Inscrições reabertas!');
                         } catch (e) {
                             showToast('Erro ao atualizar configurações.', 'error');
                         }
@@ -956,7 +970,7 @@ ${lineupText}`;
                     }
                     setAdminPassword(newPass);
                     admNewPassInput.value = '';
-                    showToast('Senha do ADM alterada com sucesso!');
+                    showToast('Senha alterada com sucesso!');
                 });
             }
 
@@ -970,7 +984,7 @@ ${lineupText}`;
             if (admExportCsvBtn) {
                 admExportCsvBtn.addEventListener('click', () => {
                     if (globalRegistrations.length === 0) {
-                        showToast('Nenhum squad inscrito para exportar.', 'error');
+                        showToast('Nenhum squad inscrito.', 'error');
                         return;
                     }
                     let csv = 'Slot,Protocolo,Squad,Capitao,Discord,WhatsApp,Status,Data\n';
@@ -983,7 +997,7 @@ ${lineupText}`;
                     a.href = url;
                     a.download = 'cup_dean_squads.csv';
                     a.click();
-                    showToast('Planilha CSV exportada com sucesso!');
+                    showToast('Planilha CSV exportada!');
                 });
             }
 
@@ -1004,9 +1018,9 @@ ${lineupText}`;
                     tempArea.select();
                     try {
                         document.execCommand('copy');
-                        showToast('Lista copiada para o Discord!');
+                        showToast('Lista copiada!');
                     } catch (e) {
-                        showToast('Erro ao copiar lista.', 'error');
+                        showToast('Erro ao copiar.', 'error');
                     }
                     document.body.removeChild(tempArea);
                 });
