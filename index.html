@@ -359,7 +359,7 @@
             </div>
             
             <p class="text-xs text-purple-200/90">
-                Seu Squad foi registrado com sucesso! Entre agora no <strong class="text-emerald-400">Grupo Oficial do WhatsApp</strong> (onde sairão as salas, tabelas e classificações) e copie seu comprovante abaixo:
+                Seu Squad foi registrado com sucesso em nosso banco de dados em nuvem! Entre agora no <strong class="text-emerald-400">Grupo Oficial do WhatsApp</strong> (onde sairão as salas, tabelas e classificações) e copie seu comprovante abaixo:
             </p>
 
             <div class="p-3 rounded-xl bg-black/80 border border-purple-500/40 text-[11px] font-mono text-purple-200 max-h-48 overflow-y-auto whitespace-pre-wrap select-all" id="receipt-text"></div>
@@ -414,7 +414,7 @@
                     </div>
                     <div>
                         <h3 class="font-extrabold text-lg text-white">PAINEL DO ORGANIZADOR</h3>
-                        <p class="text-xs text-purple-300/70">Gestão oficial da CUP DEAN (12 Vagas)</p>
+                        <p class="text-xs text-purple-300/70">Gestão oficial em nuvem da CUP DEAN (12 Vagas)</p>
                     </div>
                 </div>
                 <button type="button" id="close-admin-dashboard" class="w-9 h-9 rounded-xl bg-black/50 border border-purple-500/30 text-purple-300 hover:bg-purple-900/40 hover:text-white flex items-center justify-center transition-colors">
@@ -453,17 +453,11 @@
                         <i class="fa-solid fa-copy"></i> Copiar Lista para Discord
                     </button>
                 </div>
-                <div class="flex gap-2 w-full md:w-auto">
-                    <input type="text" id="adm-import-input" placeholder="Cole o texto do comprovante..." class="px-3 py-2 rounded-lg bg-black/80 border border-purple-500/40 text-xs text-white w-full md:w-64 focus:outline-none focus:border-purple-400">
-                    <button type="button" id="adm-import-btn" class="px-4 py-2 rounded-lg bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold transition-colors whitespace-nowrap">
-                        Importar
-                    </button>
-                </div>
             </div>
 
             <!-- Lista de Squads -->
             <div class="space-y-3">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-purple-300">Gerenciamento de Vagas (#01 a #12)</h4>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-purple-300">Gerenciamento de Vagas em Tempo Real (#01 a #12)</h4>
                 <div id="adm-squads-container" class="space-y-2 max-h-96 overflow-y-auto pr-2">
                     <!-- Preenchido por JS -->
                 </div>
@@ -487,39 +481,71 @@
         </div>
     </div>
     
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const STORAGE_KEY = 'cup_dean_squad_registrations_v3';
-            const PASS_STORAGE_KEY = 'cup_dean_adm_password_v3';
-            const STATUS_STORAGE_KEY = 'cup_dean_reg_closed_v3';
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'cup-dean-default-app';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "demo", projectId: "demo" };
+
+        let app, db, auth;
+        let globalRegistrations = [];
+        let globalSettings = { closed: false };
+
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+        } catch (e) {
+            console.error("Firebase init error:", e);
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const PASS_STORAGE_KEY = 'cup_dean_adm_password_v4';
             const DEFAULT_PASS = '@sme.dnH31';
             const MAX_SLOTS = 12;
             let lastGeneratedReceiptText = '';
 
-            function getRegistrations() {
+            // Autenticação Firebase
+            if (auth) {
                 try {
-                    const data = localStorage.getItem(STORAGE_KEY);
-                    if (!data) return [];
-                    const parsed = JSON.parse(data);
-                    return Array.isArray(parsed) ? parsed : [];
-                } catch (e) {
-                    return [];
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (err) {
+                    console.error("Auth error:", err);
                 }
             }
 
-            function saveRegistrations(regs) {
-                try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(regs));
-                    return true;
-                } catch (e) {
-                    try {
-                        const withoutHeavyLogos = regs.map(r => ({ ...r, logo: '' }));
-                        localStorage.setItem(STORAGE_KEY, JSON.stringify(withoutHeavyLogos));
-                        return true;
-                    } catch (err) {
-                        return false;
-                    }
-                }
+            function getAdminPassword() {
+                return localStorage.getItem(PASS_STORAGE_KEY) || DEFAULT_PASS;
+            }
+
+            function setAdminPassword(newPass) {
+                localStorage.setItem(PASS_STORAGE_KEY, newPass);
+            }
+
+            function showToast(message, type = 'success') {
+                const existing = document.getElementById('custom-toast');
+                if (existing) existing.remove();
+
+                const toast = document.createElement('div');
+                toast.id = 'custom-toast';
+                const bgClass = type === 'error'
+                    ? 'bg-red-950/95 border-red-500 text-red-200'
+                    : 'bg-purple-950/95 border-amber-400 text-amber-200';
+                toast.className = `fixed bottom-5 right-5 z-[60] px-4 py-3 rounded-xl border ${bgClass} shadow-2xl text-xs font-bold flex items-center gap-2 transition-all`;
+                toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation text-red-400' : 'fa-circle-check text-amber-400'}"></i><span>${message}</span>`;
+                document.body.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3500);
             }
 
             function compressImage(file, maxSize = 150) {
@@ -556,41 +582,6 @@
                 });
             }
 
-            function getAdminPassword() {
-                return localStorage.getItem(PASS_STORAGE_KEY) || DEFAULT_PASS;
-            }
-
-            function setAdminPassword(newPass) {
-                localStorage.setItem(PASS_STORAGE_KEY, newPass);
-            }
-
-            function isRegistrationClosed() {
-                return localStorage.getItem(STATUS_STORAGE_KEY) === 'true';
-            }
-
-            function setRegistrationClosed(closed) {
-                localStorage.setItem(STATUS_STORAGE_KEY, closed ? 'true' : 'false');
-            }
-
-            function showToast(message, type = 'success') {
-                const existing = document.getElementById('custom-toast');
-                if (existing) existing.remove();
-
-                const toast = document.createElement('div');
-                toast.id = 'custom-toast';
-                const bgClass = type === 'error'
-                    ? 'bg-red-950/95 border-red-500 text-red-200'
-                    : 'bg-purple-950/95 border-amber-400 text-amber-200';
-                toast.className = `fixed bottom-5 right-5 z-[60] px-4 py-3 rounded-xl border ${bgClass} shadow-2xl text-xs font-bold flex items-center gap-2 transition-all`;
-                toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation text-red-400' : 'fa-circle-check text-amber-400'}"></i><span>${message}</span>`;
-                document.body.appendChild(toast);
-
-                setTimeout(() => {
-                    toast.style.opacity = '0';
-                    setTimeout(() => toast.remove(), 300);
-                }, 3500);
-            }
-
             const slotsDisplayContainer = document.getElementById('slots-display-container');
             const vagasContador = document.getElementById('vagas-contador');
             const vagasBadgeHeader = document.getElementById('vagas-badge-header');
@@ -614,15 +605,12 @@
             const admLogoutBtn = document.getElementById('adm-logout-btn');
             const admExportCsvBtn = document.getElementById('adm-export-csv');
             const admCopyListBtn = document.getElementById('adm-copy-list');
-            const admImportBtn = document.getElementById('adm-import-btn');
-            const admImportInput = document.getElementById('adm-import-input');
 
             function updateUI() {
-                const regs = getRegistrations();
-                const closed = isRegistrationClosed() || regs.length >= MAX_SLOTS;
+                const closed = globalSettings.closed || globalRegistrations.length >= MAX_SLOTS;
 
                 if (vagasContador) {
-                    vagasContador.textContent = `${regs.length}/${MAX_SLOTS} Vagas`;
+                    vagasContador.textContent = `${globalRegistrations.length}/${MAX_SLOTS} Vagas`;
                 }
 
                 if (vagasBadgeHeader) {
@@ -630,7 +618,7 @@
                         vagasBadgeHeader.textContent = 'INSCRIÇÕES ENCERRADAS (12/12 VAGAS)';
                         vagasBadgeHeader.className = 'text-xs font-bold tracking-wider text-red-300 uppercase bg-red-950/80 px-3 py-1 rounded border border-red-500/40 inline-block';
                     } else {
-                        const livres = MAX_SLOTS - regs.length;
+                        const livres = MAX_SLOTS - globalRegistrations.length;
                         vagasBadgeHeader.textContent = `INSCRIÇÕES ABERTAS • ${livres} ${livres === 1 ? 'VAGA RESTANTE' : 'VAGAS RESTANTES'}`;
                         vagasBadgeHeader.className = 'text-xs font-bold tracking-wider text-emerald-300 uppercase bg-emerald-950/80 px-3 py-1 rounded border border-emerald-500/30 inline-block';
                     }
@@ -639,7 +627,7 @@
                 if (slotsDisplayContainer) {
                     slotsDisplayContainer.innerHTML = '';
                     for (let i = 1; i <= MAX_SLOTS; i++) {
-                        const reg = regs.find(r => r.slotNumber === i) || regs[i - 1];
+                        const reg = globalRegistrations.find(r => r.slotNumber === i) || globalRegistrations[i - 1];
                         const slotCard = document.createElement('div');
                         if (reg) {
                             const logoHtml = reg.logo
@@ -680,32 +668,30 @@
             }
 
             function renderAdminDashboardData() {
-                const regs = getRegistrations();
-                const confirmedCount = regs.filter(r => r.confirmed).length;
+                const confirmedCount = globalRegistrations.filter(r => r.confirmed).length;
 
                 const statTotal = document.getElementById('adm-stat-total');
                 const statConfirmed = document.getElementById('adm-stat-confirmed');
                 const statFree = document.getElementById('adm-stat-free');
                 const container = document.getElementById('adm-squads-container');
 
-                if (statTotal) statTotal.textContent = `${regs.length} / ${MAX_SLOTS}`;
+                if (statTotal) statTotal.textContent = `${globalRegistrations.length} / ${MAX_SLOTS}`;
                 if (statConfirmed) statConfirmed.textContent = String(confirmedCount);
-                if (statFree) statFree.textContent = String(Math.max(0, MAX_SLOTS - regs.length));
+                if (statFree) statFree.textContent = String(Math.max(0, MAX_SLOTS - globalRegistrations.length));
 
                 if (admToggleRegBtn) {
-                    const closed = isRegistrationClosed();
-                    admToggleRegBtn.textContent = closed ? 'Reabrir Inscrições' : 'Encerrar Inscrições';
+                    admToggleRegBtn.textContent = globalSettings.closed ? 'Reabrir Inscrições' : 'Encerrar Inscrições';
                 }
 
                 if (!container) return;
                 container.innerHTML = '';
 
-                if (regs.length === 0) {
+                if (globalRegistrations.length === 0) {
                     container.innerHTML = '<p class="text-xs text-purple-300/60 text-center py-6">Nenhum squad inscrito ainda.</p>';
                     return;
                 }
 
-                regs.forEach((reg, index) => {
+                globalRegistrations.forEach((reg, index) => {
                     const playersList = (reg.players || [])
                         .map((p, idx) => `${idx === 4 ? 'Reserva' : '#' + (idx + 1)}: ${p.nick} (${p.id})`)
                         .join(' | ');
@@ -715,7 +701,7 @@
                     item.innerHTML = `
                         <div class="space-y-1">
                             <div class="flex items-center gap-2 flex-wrap">
-                                <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[11px] font-bold">#${String(index + 1).padStart(2, '0')}</span>
+                                <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[11px] font-bold">#${String(reg.slotNumber || (index + 1)).padStart(2, '0')}</span>
                                 <span class="font-extrabold text-white text-sm">${reg.squadName}</span>
                                 <span class="text-[10px] font-mono text-purple-400">(${reg.protocol})</span>
                             </div>
@@ -725,10 +711,10 @@
                             <p class="text-[11px] text-purple-300/70 font-mono">${playersList}</p>
                         </div>
                         <div class="flex items-center gap-2 flex-shrink-0">
-                            <button type="button" data-action="toggle-confirm" data-index="${index}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${reg.confirmed ? 'bg-emerald-600/30 border border-emerald-500 text-emerald-300' : 'bg-amber-600/30 border border-amber-500 text-amber-300'}">
+                            <button type="button" data-action="toggle-confirm" data-id="${reg.id}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${reg.confirmed ? 'bg-emerald-600/30 border border-emerald-500 text-emerald-300' : 'bg-amber-600/30 border border-amber-500 text-amber-300'}">
                                 ${reg.confirmed ? 'Confirmado ✅' : 'Confirmar'}
                             </button>
-                            <button type="button" data-action="delete" data-index="${index}" class="px-3 py-1.5 rounded-lg bg-red-900/40 border border-red-500/40 text-red-300 hover:bg-red-800 hover:text-white text-xs font-bold transition-colors">
+                            <button type="button" data-action="delete" data-id="${reg.id}" class="px-3 py-1.5 rounded-lg bg-red-900/40 border border-red-500/40 text-red-300 hover:bg-red-800 hover:text-white text-xs font-bold transition-colors">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>
@@ -737,36 +723,72 @@
                 });
 
                 container.querySelectorAll('button[data-action]').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const idx = Number(btn.getAttribute('data-index'));
+                    btn.addEventListener('click', async () => {
+                        const id = btn.getAttribute('data-id');
                         const action = btn.getAttribute('data-action');
-                        const currentRegs = getRegistrations();
+                        const targetReg = globalRegistrations.find(r => r.id === id);
 
-                        if (action === 'toggle-confirm' && currentRegs[idx]) {
-                            currentRegs[idx].confirmed = !currentRegs[idx].confirmed;
-                            saveRegistrations(currentRegs);
-                            updateUI();
-                            renderAdminDashboardData();
-                            showToast('Status da vaga atualizado!');
-                        } else if (action === 'delete' && currentRegs[idx]) {
-                            const removedName = currentRegs[idx].squadName;
-                            currentRegs.splice(idx, 1);
-                            currentRegs.forEach((r, i) => { r.slotNumber = i + 1; });
-                            saveRegistrations(currentRegs);
-                            updateUI();
-                            renderAdminDashboardData();
-                            showToast(`Squad "${removedName}" removido.`);
+                        if (action === 'toggle-confirm' && targetReg && db) {
+                            try {
+                                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cup_dean_squads', id), {
+                                    confirmed: !targetReg.confirmed
+                                });
+                                showToast('Status atualizado na nuvem!');
+                            } catch (e) {
+                                showToast('Erro ao atualizar.', 'error');
+                            }
+                        } else if (action === 'delete' && targetReg && db) {
+                            try {
+                                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cup_dean_squads', id));
+                                showToast(`Squad "${targetReg.squadName}" removido.`);
+                            } catch (e) {
+                                showToast('Erro ao remover.', 'error');
+                            }
                         }
                     });
                 });
             }
 
+            // OUVIR FIRESTORE EM TEMPO REAL
+            if (db) {
+                try {
+                    // Inscrições
+                    onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cup_dean_squads'), (snapshot) => {
+                        const list = [];
+                        snapshot.forEach((docSnap) => {
+                            list.push({ id: docSnap.id, ...docSnap.data() });
+                        });
+                        list.sort((a, b) => (a.slotNumber || 0) - (b.slotNumber || 0));
+                        globalRegistrations = list;
+                        updateUI();
+                        if (!adminDashboardModal.classList.contains('hidden')) {
+                            renderAdminDashboardData();
+                        }
+                    }, (err) => {
+                        console.error("Firestore snapshot error:", err);
+                    });
+
+                    // Configurações
+                    onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cup_dean_settings'), (snapshot) => {
+                        snapshot.forEach((docSnap) => {
+                            if (docSnap.id === 'config') {
+                                globalSettings = docSnap.data();
+                                updateUI();
+                            }
+                        });
+                    }, (err) => {
+                        console.error("Settings snapshot error:", err);
+                    });
+                } catch (e) {
+                    console.error("Firestore error:", e);
+                }
+            }
+
             if (championshipForm) {
-                championshipForm.addEventListener('submit', (e) => {
+                championshipForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
 
-                    const regs = getRegistrations();
-                    if (isRegistrationClosed() || regs.length >= MAX_SLOTS) {
+                    if (globalSettings.closed || globalRegistrations.length >= MAX_SLOTS) {
                         showToast('As inscrições estão encerradas!', 'error');
                         return;
                     }
@@ -789,19 +811,19 @@
                         players.push({ nick: subNick || 'Reserva', id: subId || '-' });
                     }
 
-                    const processRegistration = (logoBase64) => {
-                        const freshRegs = getRegistrations();
-                        if (freshRegs.length >= MAX_SLOTS) {
+                    const processRegistration = async (logoBase64) => {
+                        if (globalRegistrations.length >= MAX_SLOTS) {
                             showToast('As 12 vagas acabaram de ser preenchidas!', 'error');
                             return;
                         }
 
-                        const slotNumber = freshRegs.length + 1;
+                        const slotNumber = globalRegistrations.length + 1;
                         const now = new Date();
                         const day = String(now.getDate()).padStart(2, '0');
                         const month = String(now.getMonth() + 1).padStart(2, '0');
                         const randCode = Math.random().toString(36).substring(2, 6).toUpperCase();
                         const protocol = `CUP-${day}/${month}-${randCode}`;
+                        const docId = 'squad_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
 
                         const newReg = {
                             protocol,
@@ -816,9 +838,15 @@
                             date: now.toLocaleString('pt-BR')
                         };
 
-                        freshRegs.push(newReg);
-                        saveRegistrations(freshRegs);
-                        updateUI();
+                        if (db) {
+                            try {
+                                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cup_dean_squads', docId), newReg);
+                            } catch (e) {
+                                console.error("Error saving to firestore:", e);
+                                showToast('Erro ao salvar no banco de dados.', 'error');
+                                return;
+                            }
+                        }
 
                         let lineupText = players
                             .slice(0, 4)
@@ -840,7 +868,7 @@ ${lineupText}`;
                         if (receiptModal) receiptModal.classList.remove('hidden');
 
                         championshipForm.reset();
-                        showToast('Vaga garantida com sucesso!');
+                        showToast('Vaga garantida e salva na nuvem com sucesso!');
                     };
 
                     const logoInput = document.getElementById('squad-logo');
@@ -906,12 +934,18 @@ ${lineupText}`;
             }
 
             if (admToggleRegBtn) {
-                admToggleRegBtn.addEventListener('click', () => {
-                    const current = isRegistrationClosed();
-                    setRegistrationClosed(!current);
-                    updateUI();
-                    renderAdminDashboardData();
-                    showToast(!current ? 'Inscrições encerradas manualmente.' : 'Inscrições reabertas!');
+                admToggleRegBtn.addEventListener('click', async () => {
+                    const current = globalSettings.closed;
+                    if (db) {
+                        try {
+                            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cup_dean_settings', 'config'), {
+                                closed: !current
+                            }, { merge: true });
+                            showToast(!current ? 'Inscrições encerradas manualmente.' : 'Inscrições reabertas!');
+                        } catch (e) {
+                            showToast('Erro ao atualizar configurações.', 'error');
+                        }
+                    }
                 });
             }
 
@@ -937,13 +971,12 @@ ${lineupText}`;
 
             if (admExportCsvBtn) {
                 admExportCsvBtn.addEventListener('click', () => {
-                    const regs = getRegistrations();
-                    if (regs.length === 0) {
+                    if (globalRegistrations.length === 0) {
                         showToast('Nenhum squad inscrito para exportar.', 'error');
                         return;
                     }
                     let csv = 'Slot,Protocolo,Squad,Capitao,Discord,WhatsApp,Status,Data\n';
-                    regs.forEach(r => {
+                    globalRegistrations.forEach(r => {
                         csv += `"${r.slotNumber}","${r.protocol}","${r.squadName}","${r.capName}","${r.capDiscord}","${r.capWhatsapp}","${r.confirmed ? 'Confirmado' : 'Inscrito'}","${r.date}"\n`;
                     });
                     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -958,13 +991,12 @@ ${lineupText}`;
 
             if (admCopyListBtn) {
                 admCopyListBtn.addEventListener('click', () => {
-                    const regs = getRegistrations();
-                    if (regs.length === 0) {
+                    if (globalRegistrations.length === 0) {
                         showToast('Nenhum squad inscrito.', 'error');
                         return;
                     }
                     let text = '🏆 *LISTA OFICIAL DE SQUADS - CUP DEAN (FF 2019)* 🏆\n\n';
-                    regs.forEach(r => {
+                    globalRegistrations.forEach(r => {
                         text += `#${String(r.slotNumber).padStart(2, '0')} - *${r.squadName}* (Cap: ${r.capName}) ${r.confirmed ? '✅' : '⏳'}\n`;
                     });
                     
@@ -979,64 +1011,6 @@ ${lineupText}`;
                         showToast('Erro ao copiar lista.', 'error');
                     }
                     document.body.removeChild(tempArea);
-                });
-            }
-
-            if (admImportBtn && admImportInput) {
-                admImportBtn.addEventListener('click', () => {
-                    const text = admImportInput.value.trim();
-                    if (!text) {
-                        showToast('Cole o texto do comprovante primeiro.', 'error');
-                        return;
-                    }
-                    const regs = getRegistrations();
-                    if (regs.length >= MAX_SLOTS) {
-                        showToast('Todas as 12 vagas já estão preenchidas!', 'error');
-                        return;
-                    }
-
-                    const protocolMatch = text.match(/\*Protocolo:\*\s*([^\n]+)/i);
-                    const squadMatch = text.match(/\*Squad:\*\s*([^(|\n]+)/i);
-                    const capMatch = text.match(/\*Capitão:\*\s*([^|\n]+)/i);
-                    const discordMatch = text.match(/Discord:\s*([^|\n]+)/i);
-                    const zapMatch = text.match(/WhatsApp:\s*([^\n]+)/i);
-
-                    const players = [];
-                    const playerRegex = /^[1-4]\.\s*(.+?)\s*\(ID:\s*([^)]+)\)/gm;
-                    let match;
-                    while ((match = playerRegex.exec(text)) !== null) {
-                        players.push({ nick: match[1].trim(), id: match[2].trim() });
-                    }
-                    const subMatch = text.match(/Reserva:\s*(.+?)\s*\(ID:\s*([^)]+)\)/i);
-                    if (subMatch) {
-                        players.push({ nick: subMatch[1].trim(), id: subMatch[2].trim() });
-                    }
-
-                    const slotNumber = regs.length + 1;
-                    const newReg = {
-                        protocol: protocolMatch ? protocolMatch[1].trim() : `IMP-${String(slotNumber).padStart(2, '0')}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
-                        slotNumber,
-                        squadName: squadMatch ? squadMatch[1].trim() : 'Squad ' + slotNumber,
-                        logo: '',
-                        capName: capMatch ? capMatch[1].trim() : 'Capitão',
-                        capDiscord: discordMatch ? discordMatch[1].trim() : '-',
-                        capWhatsapp: zapMatch ? zapMatch[1].trim() : '-',
-                        players: players.length > 0 ? players : [
-                            { nick: 'Titular 1', id: '-' },
-                            { nick: 'Titular 2', id: '-' },
-                            { nick: 'Titular 3', id: '-' },
-                            { nick: 'Titular 4', id: '-' }
-                        ],
-                        confirmed: true,
-                        date: new Date().toLocaleString('pt-BR')
-                    };
-
-                    regs.push(newReg);
-                    saveRegistrations(regs);
-                    updateUI();
-                    renderAdminDashboardData();
-                    admImportInput.value = '';
-                    showToast(`Squad "${newReg.squadName}" importado para a vaga #${String(slotNumber).padStart(2, '0')}!`);
                 });
             }
 
