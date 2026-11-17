@@ -508,7 +508,7 @@
             const MAX_SLOTS = 12;
             let lastGeneratedReceiptText = '';
 
-            // Autenticação Firebase
+            // Autenticação Firebase (Regra obrigatória antes das queries)
             if (auth) {
                 try {
                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -749,10 +749,9 @@
                 });
             }
 
-            // OUVIR FIRESTORE EM TEMPO REAL
+            // OUVIR FIRESTORE EM TEMPO REAL (Regra 1: strict paths / sem queries compostas)
             if (db) {
                 try {
-                    // Inscrições
                     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cup_dean_squads'), (snapshot) => {
                         const list = [];
                         snapshot.forEach((docSnap) => {
@@ -768,7 +767,6 @@
                         console.error("Firestore snapshot error:", err);
                     });
 
-                    // Configurações
                     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cup_dean_settings'), (snapshot) => {
                         snapshot.forEach((docSnap) => {
                             if (docSnap.id === 'config') {
